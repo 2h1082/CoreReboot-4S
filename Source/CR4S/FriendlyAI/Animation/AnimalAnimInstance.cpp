@@ -25,7 +25,15 @@ void UAnimalAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
+	LastUpdateTime += DeltaSeconds;
+	if (AnimationTickInterval > 0.0f && LastUpdateTime < AnimationTickInterval)
+	{
+		return;
+	}
+	LastUpdateTime = 0.0f;
+    
 	APawn* PawnOwner = TryGetPawnOwner();
+	
 	if (!PawnOwner)
 	{
 		GroundSpeed = 0.f;

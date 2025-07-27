@@ -18,10 +18,12 @@
 #include "../Character/Characters/PlayerCharacter.h"
 #include "NavigationInvokerComponent.h"
 #include "NiagaraComponent.h"
+#include "Animation/AnimalAnimInstance.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/BaseStatusComponent.h"
 #include "Component/ObjectPoolComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
+#include "ETC/AnimalOptimizationManager.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Utility/CombatStatics.h"
@@ -75,7 +77,6 @@ ABaseAnimal::ABaseAnimal()
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
-
     StartFade(true);
     
     if (InteractableComponent)
@@ -125,6 +126,13 @@ void ABaseAnimal::BeginPlay()
 void ABaseAnimal::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+    
+    FVector MyLocation = GetActorLocation();
+    
+    if (UAnimalOptimizationManager* OptManager = GetWorld()->GetSubsystem<UAnimalOptimizationManager>())
+    {
+        OptManager->ApplyDistanceBasedOptimization(this, MyLocation);
+    }
     
     DrawDebugVisuals();
 }
@@ -946,13 +954,12 @@ void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const F
 
 #pragma region Pool
 void ABaseAnimal::OnSpawnFromPool()
-{
+{    
     SetAnimalState(EAnimalState::Patrol);
     CurrentTarget = nullptr;
     bIsStunned = false;
     StunValue = 0.0f;
     CurrentHealth = GetCurrentStats().MaxHealth;
-    
     GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
     
     GetMesh()->SetSimulatePhysics(false);
@@ -984,7 +991,6 @@ void ABaseAnimal::OnSpawnFromPool()
     {
         SpawnDefaultController();
     }
-    
     StartFade(true);
 }
 
