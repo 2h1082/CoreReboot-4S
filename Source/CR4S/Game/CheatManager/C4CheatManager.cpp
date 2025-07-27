@@ -4,6 +4,7 @@
 #include "EngineUtils.h"
 #include "Game/CheatManager/TimeCheatHelper.h"
 #include "Game/CheatManager/SaveGameHelper.h"
+#include "Game/CheatManager/AnimalCheatHelper.h"
 #include "CR4S.h"
 #include "ItemGimmickHelper.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
@@ -20,6 +21,7 @@ void UC4CheatManager::InitCheatManager()
 	ItemGimmickHelper = NewObject<UItemGimmickHelper>(this);
 	SaveGameHelper = NewObject<USaveGameHelper>(this);
 	CharacterCheatHelper = NewObject<UCharacterCheatHelper>(this);
+	AnimalHelper = NewObject<UAnimalCheatHelper>(this);
 }
 
 void UC4CheatManager::SetInvincibleMode(const bool bInvincibleMode) const
@@ -100,4 +102,36 @@ void UC4CheatManager::SetMonstersHP(const float InHealth)
 void UC4CheatManager::ShowMonsterHPBar(const bool bShow)
 {
 	MonsterAIHelper::ShowMonsterHPBars(GetWorld(), bShow);
+}
+
+void UC4CheatManager::KillAllAnimals() const
+{
+	if (AnimalHelper)
+	{
+		AnimalHelper->KillAllAnimals();
+	}
+}
+
+void UC4CheatManager::StunAllAnimals(const float StunDuration) const
+{
+	if (AnimalHelper)
+	{
+		AnimalHelper->StunAllAnimals(StunDuration);
+	}
+}
+
+void UC4CheatManager::SpawnAnimal(const FString& AnimalName, int32 Count) const
+{
+	if (AnimalHelper)
+	{
+		AnimalHelper->SpawnAnimal(AnimalName, Count);
+	}
+}
+
+void UC4CheatManager::SpawnAnimalMonster(const FString& MonsterName, int32 Count) const
+{
+	if (AnimalHelper)
+	{
+		AnimalHelper->SpawnAnimalMonster(MonsterName, Count);
+	}
 }
