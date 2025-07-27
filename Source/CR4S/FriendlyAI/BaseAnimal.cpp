@@ -20,6 +20,7 @@
 #include "NiagaraComponent.h"
 #include "Character/Characters/ModularRobot.h"
 #include "Character/Components/BaseStatusComponent.h"
+#include "Component/ObjectPoolComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -66,6 +67,9 @@ ABaseAnimal::ABaseAnimal()
     PerceptionStimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliSource"));
     PerceptionStimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
     PerceptionStimuliSource->RegisterWithPerceptionSystem();
+
+    ObjectPoolComponent = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("ObjectPoolComponent"));
+    ObjectPoolComponent->InitialPoolSize = 20;
 }
 
 void ABaseAnimal::BeginPlay()
@@ -103,6 +107,15 @@ void ABaseAnimal::BeginPlay()
             });
         }
     }
+
+    if (UObjectPoolComponent* PoolComp = FindComponentByClass<UObjectPoolComponent>())
+    {
+        PoolComp->OnSpawnFromPoolDelegate.AddDynamic(this, &ABaseAnimal::OnSpawnFromPool);
+        PoolComp->OnReturnToPoolDelegate.AddDynamic(this, &ABaseAnimal::OnReturnToPool);
+    }
+    
+    InitialMeshRelativeLocation = GetMesh()->GetRelativeLocation();
+    InitialMeshRelativeRotation = GetMesh()->GetRelativeRotation();
     
     LoadStats();
     
@@ -396,7 +409,12 @@ void ABaseAnimal::Die()
     if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
     {
         C->OnDied();
+        ClearTarget();
+        // UE_LOG(LogTemp, Warning, TEXT("[%s] Current AnimalState: %s"),
+        //        *GetName(),
+        //        *UEnum::GetValueAsString(CurrentState));
     }
+    
     else if (AAnimalMonsterAIController* MC = Cast<AAnimalMonsterAIController>(GetController()))
     {
         MC->OnDied();
@@ -412,7 +430,6 @@ void ABaseAnimal::Die()
         ActiveInteractWidget->RemoveFromParent();
         ActiveInteractWidget = nullptr;
     }
-    OnSpawnableDestroyed.Broadcast(this);
 
     if (AAIController* AIController = Cast<AAIController>(GetController()))
     {
@@ -422,10 +439,10 @@ void ABaseAnimal::Die()
         }
         if (UBrainComponent* Brain = AIController->BrainComponent)
         {
-            Brain->StopLogic("Dead");  
+            //Brain->StopLogic("Dead");  
         }
         AIController->StopMovement();
-        AIController->UnPossess(); 
+        //AIController->UnPossess(); 
     }
         
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -437,11 +454,15 @@ void ABaseAnimal::Die()
     GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetMesh()->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-    SetLifeSpan(30.f);
-
+    
     ElapsedFadeTime = 0.f;
     FTimerDelegate FadeOutDelegate = FTimerDelegate::CreateUObject(this, &ABaseAnimal::StartFade, false);
     GetWorldTimerManager().SetTimer(FadeDelayTimerHandle, FadeOutDelegate, 28.f, false);
+    
+    if (UObjectPoolComponent* PoolComp = FindComponentByClass<UObjectPoolComponent>())
+    {
+        PoolComp->ReturnToPoolAfter(30.f);
+    }
 }
 
 void ABaseAnimal::SetAnimalState(EAnimalState NewState)
@@ -492,6 +513,12 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
     
     CurrentHealth -= ActualDamage;
+    
+    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
+    {
+        C->SetTargetByDamage(DamageCauser);
+    }
+    
     if (CurrentHealth <= 0.f)
     {
         CurrentHealth = 0.f;
@@ -500,12 +527,7 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     }
 
     ShowHitEffect(DamageCauser);
-
-    if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
-    {
-        C->SetTargetByDamage(DamageCauser);
-    }
-
+    
     return ActualDamage;
 }
 
@@ -599,7 +621,12 @@ void ABaseAnimal::OnInteract(AActor* Interactor)
     }
     
     StartFade(false);
-    SetLifeSpan(2.0f);
+    // SetLifeSpan(2.0f);
+    
+    if (UObjectPoolComponent* PoolComp = FindComponentByClass<UObjectPoolComponent>())
+    {
+        PoolComp->ReturnToPoolAfter(2.0f);
+    }
 }
 
 void ABaseAnimal::GetActorEyesViewPoint(FVector& Location, FRotator& Rotation) const
@@ -914,5 +941,72 @@ void ABaseAnimal::PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const F
             }
         }
     }
+}
+#pragma endregion
+
+#pragma region Pool
+void ABaseAnimal::OnSpawnFromPool()
+{
+    SetAnimalState(EAnimalState::Patrol);
+    CurrentTarget = nullptr;
+    bIsStunned = false;
+    StunValue = 0.0f;
+    CurrentHealth = GetCurrentStats().MaxHealth;
+    
+    GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+    
+    GetMesh()->SetSimulatePhysics(false);
+    GetMesh()->SetCollisionProfileName(TEXT("Custom"));
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetCollisionObjectType(ECC_WorldDynamic);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+    GetMesh()->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Destructible, ECR_Ignore);
+    GetMesh()->SetRelativeLocation(InitialMeshRelativeLocation);
+    GetMesh()->SetRelativeRotation(InitialMeshRelativeRotation);
+
+    GetCharacterMovement()->Activate();
+    
+    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+    {
+        if (UAIPerceptionComponent* PerceptionComp = AIController->GetAIPerceptionComponent())
+        {
+            PerceptionComp->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
+            PerceptionComp->SetSenseEnabled(UAISense_Hearing::StaticClass(), true);
+        }
+        AIController->SetAnimalState(EAnimalState::Patrol);
+        AIController->ClearTargetActor();
+    }
+
+    if (!GetController())
+    {
+        SpawnDefaultController();
+    }
+    
+    StartFade(true);
+}
+
+void ABaseAnimal::OnReturnToPool()
+{
+    OnSpawnableDestroyed.Broadcast(this);
+    OnSpawnableDestroyed.Clear();
+    GetWorldTimerManager().ClearTimer(FadeTimerHandle);
+    GetWorldTimerManager().ClearTimer(FadeDelayTimerHandle);
+    GetWorldTimerManager().ClearTimer(StunRecoverTimer);
+    GetWorldTimerManager().ClearTimer(AttackTimerHandle);
+    GetWorldTimerManager().ClearTimer(MeleeAttackTimerHandle);
+    GetWorldTimerManager().ClearTimer(ChargeAttackTimerHandle);
+    GetWorldTimerManager().ClearTimer(RangedAttackTimerHandle);
+    
+    if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+    {
+        AnimInstance->StopAllMontages(0.0f);
+    }
+
+    bIsMeleeOnCooldown = false;
+    bIsChargeOnCooldown = false;
+    bIsRangedOnCooldown = false;
 }
 #pragma endregion

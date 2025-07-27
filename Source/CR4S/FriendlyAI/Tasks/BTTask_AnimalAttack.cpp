@@ -100,6 +100,7 @@ void UBTTask_AnimalAttack::OnAttackFinished()
 			{
 				if (ABaseAnimal* Animal = Cast<ABaseAnimal>(C->GetPawn()))
 				{
+					if (Animal->CurrentState == EAnimalState::Dead) return;
 					AActor* CurrentPlayerTarget = C->GetCurrentPlayerTarget();
 					if (IsValid(CurrentPlayerTarget))
 					{

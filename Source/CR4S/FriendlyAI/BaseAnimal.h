@@ -16,6 +16,7 @@ class UGroundMovementComponent;
 class UNavigationInvokerComponent;
 class UParticleSystemComponent;
 class UAIPerceptionStimuliSourceComponent;
+class UObjectPoolComponent;
 
 UENUM(BlueprintType)
 enum class EAnimalState : uint8
@@ -94,19 +95,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	AActor* CurrentTarget = nullptr;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
-	class USphereComponent* AttackRange;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
-	class USphereComponent* EnemyCollision;
-
-	UPROPERTY(VisibleAnywhere)
-	UGroundMovementComponent* GroundComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Navigation")
-	UNavigationInvokerComponent* NavInvokerComponent;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stats")
 	bool bIsFemale = false;
 
@@ -147,10 +136,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void Die();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<class UInteractableComponent> InteractableComponent;
-
+	
 	FTimerHandle StunRecoverTimer;
 	
 	bool bIsStunned = false;
@@ -168,18 +154,6 @@ public:
 	
 	//float LastAttackTime = 0.0f;
 	//float CachedAttackInterval = 0.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
-	UAnimalRangedAttackComponent* RangedAttackComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
-	UArrowComponent* MuzzleArrow;
-
-	UPROPERTY(VisibleAnywhere)
-	UParticleSystemComponent* StunEffectComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects")
-	class UNiagaraComponent* HitEffectComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects")
 	TArray<class UNiagaraSystem*> HitEffectSystems;
@@ -290,13 +264,59 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	uint8 bDrawAttackRangeDebug : 1 = 0;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UAIPerceptionStimuliSourceComponent* PerceptionStimuliSource;
-	
 #pragma endregion
 
 #pragma region SFX
 	void PlayAnimalSound(const TArray<USoundBase*>& SoundArray, const FVector& Location, const EConcurrencyType SoundType, const float Pitch = 1.0f, const float StartTime = 0.0f);
+#pragma endregion
+
+#pragma region Components
+	UPROPERTY(VisibleAnywhere)
+	UObjectPoolComponent* ObjectPoolComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	class USphereComponent* AttackRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	USphereComponent* EnemyCollision;
+
+	UPROPERTY(VisibleAnywhere)
+	UGroundMovementComponent* GroundComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Navigation")
+	UNavigationInvokerComponent* NavInvokerComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UInteractableComponent> InteractableComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
+	UAnimalRangedAttackComponent* RangedAttackComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Attack", meta=(AllowPrivateAccess="true"))
+	UArrowComponent* MuzzleArrow;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* StunEffectComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Effects")
+	class UNiagaraComponent* HitEffectComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UAIPerceptionStimuliSourceComponent* PerceptionStimuliSource;
+#pragma endregion
+
+#pragma region Pool
+	UFUNCTION()
+	void OnSpawnFromPool();
+
+	UFUNCTION()
+	void OnReturnToPool();
+
+	private:
+	UPROPERTY()
+	FVector InitialMeshRelativeLocation;
+
+	UPROPERTY()
+	FRotator InitialMeshRelativeRotation;
 #pragma endregion
 };

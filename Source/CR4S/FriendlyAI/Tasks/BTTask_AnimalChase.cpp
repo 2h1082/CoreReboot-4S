@@ -29,6 +29,11 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
     
 	if (ABaseAnimal* TargetAnimal = Cast<ABaseAnimal>(TargetActor))
 	{
+		if (Animal->CurrentState == EAnimalState::Dead || TargetAnimal->CurrentState == EAnimalState::Stun)
+		{
+			return EBTNodeResult::Failed;
+		}
+		
 		if (TargetAnimal->CurrentState == EAnimalState::Dead)
 		{
 			if (AAnimalAIController* C = Cast<AAnimalAIController>(OwnerComp.GetAIOwner()))
@@ -88,7 +93,7 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {	
 	ABaseAnimal* Animal = Cast<ABaseAnimal>(OwnerComp.GetAIOwner()->GetPawn());
-	if (!Animal || Animal->CurrentState != EAnimalState::Chase || Animal->CurrentState == EAnimalState::Stun)
+	if (!Animal || Animal->CurrentState != EAnimalState::Chase || Animal->CurrentState == EAnimalState::Stun || Animal->CurrentState == EAnimalState::Dead)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
