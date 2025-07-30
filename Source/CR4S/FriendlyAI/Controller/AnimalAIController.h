@@ -19,29 +19,51 @@ class CR4S_API AAnimalAIController : public AAIController
 
 public:
 	AAnimalAIController();
-
-	virtual void Tick(float DeltaSeconds) override;
-	
-	void ApplyPerceptionStats(const FAnimalStatsRow& Stats);
-
-	//UBehaviorTree* GetBehaviorTreeAsset() const { return BehaviorTreeAsset; }
-
+		
 	UFUNCTION(BlueprintCallable)
 	void SetAnimalState(EAnimalState NewState);
 
-	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCurrentPlayerTarget() const;
 	
-	void SetTargetByDamage(AActor* Attacker);
-
+	const FAnimalStatsRow& GetCurrentStats() const { return CurrentStats; }
 	UAISenseConfig_Sight* GetSightConfig() const { return SightConfig; }
 	
+	void SetAITimerInterval(float Interval);
+	void SetTargetByDamage(AActor* Attacker);
+	void SetTargetActor(AActor* Target);
+	
+	void ClearTargetActor();
+	void ClearAITimers() { GetWorld()->GetTimerManager().ClearTimer(AIUpdateTimerHandle); }
+
+	void ApplyPerceptionStats(const FAnimalStatsRow& Stats);
+	
+	void OnTargetDied(AActor* DeadActor);
+	void OnTargetOutOfRange();
+	void OnStunned();
+	void OnRecoveredFromStun();
+	void OnDied();
+	
 protected:
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
 	virtual void OnPossess(APawn* InPawn) override;
 	
 	void HandlePerceptionResponse(class ABaseAnimal* Animal, AActor* SensedActor);
-	
-	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+private:
+	void UpdateAILogic();
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* GroundBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* FlyingBehaviorTree;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* MonsterBehaviorTree;
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -58,31 +80,9 @@ protected:
 
 	UPROPERTY()
 	UAISenseConfig_Hearing* HearingConfig;
-
+	
 private:
+	FTimerHandle AIUpdateTimerHandle;
+
 	FAnimalStatsRow CurrentStats;
-
-public:
-	void OnTargetDied();
-	void OnTargetOutOfRange();
-	void OnStunned();
-	void OnRecoveredFromStun();
-	void OnDied();
-
-public:
-	void SetTargetActor(AActor* Target);
-	void ClearTargetActor();
-
-	UPROPERTY(EditDefaultsOnly)
-	UBehaviorTree* GroundBehaviorTree;
-
-	UPROPERTY(EditDefaultsOnly)
-	UBehaviorTree* FlyingBehaviorTree;
-
-	UPROPERTY(EditDefaultsOnly)
-	UBehaviorTree* MonsterBehaviorTree;
-
-public:
-	UFUNCTION(BlueprintCallable)
-	AActor* GetCurrentPlayerTarget() const;
 };

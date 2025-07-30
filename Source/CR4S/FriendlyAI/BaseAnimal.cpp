@@ -1059,6 +1059,11 @@ void ABaseAnimal::OnReturnToPool()
         AnimInstance->StopAllMontages(0.0f);
     }
 
+    if (AAnimalAIController* AIController = Cast<AAnimalAIController>(GetController()))
+    {
+        AIController->ClearAITimers();
+    }
+
     bIsMeleeOnCooldown = false;
     bIsChargeOnCooldown = false;
     bIsRangedOnCooldown = false;

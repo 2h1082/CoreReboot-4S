@@ -121,7 +121,7 @@ void AAnimalGround::PerformMeleeAttack()
 		{
 			if (AAnimalAIController* C = Cast<AAnimalAIController>(GetController()))
 			{
-				C->OnTargetDied();
+				C->OnTargetDied(CurrentTarget);
 			}
 			return;
 		}

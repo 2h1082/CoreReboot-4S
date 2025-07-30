@@ -1,6 +1,9 @@
 #include "AnimalOptimizationManager.h"
+#include "EngineUtils.h"
+#include "NiagaraComponent.h"
 #include "FriendlyAI/BaseAnimal.h"
 #include "FriendlyAI/Animation/AnimalAnimInstance.h"
+#include "FriendlyAI/Controller/AnimalAIController.h"
 #include "Game/System/SpawnZoneManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
@@ -15,6 +18,14 @@ void UAnimalOptimizationManager::Initialize(FSubsystemCollectionBase& Collection
         &UAnimalOptimizationManager::UpdatePlayerGridPosition,
         0.5f,
         true
+    );
+    
+    GetWorld()->GetTimerManager().SetTimer(
+        CacheTimerHandle,
+        this,
+        &UAnimalOptimizationManager::CacheEffectsAndNiagara,
+        2.0f,
+        false
     );
 }
 
@@ -80,30 +91,120 @@ int32 UAnimalOptimizationManager::GetGridDistanceFromPlayer(const FVector& Locat
     return CalculateManhattanDistance(PlayerGridCoord, AnimalGrid);
 }
 
+void UAnimalOptimizationManager::CacheEffectsAndNiagara()
+{
+    TArray<AActor*> Animals;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABaseAnimal::StaticClass(), Animals);
+
+    for (AActor* Actor : Animals)
+    {
+        ABaseAnimal* Animal = Cast<ABaseAnimal>(Actor);
+        if (!Animal || !IsValid(Animal)) continue;
+
+        TWeakObjectPtr<ABaseAnimal> WeakAnimal = Animal;
+
+        TArray<UParticleSystemComponent*> ParticleComps;
+        Animal->GetComponents<UParticleSystemComponent>(ParticleComps);
+        if (ParticleComps.Num() > 0)
+        {
+            TArray<TWeakObjectPtr<UParticleSystemComponent>> WeakParticleComps;
+            for (UParticleSystemComponent* Comp : ParticleComps)
+            {
+                WeakParticleComps.Add(Comp);
+            }
+            CachedParticleComponents.Add(WeakAnimal, WeakParticleComps);
+        }
+
+        TArray<UNiagaraComponent*> NiagaraComps;
+        Animal->GetComponents<UNiagaraComponent>(NiagaraComps);
+        if (NiagaraComps.Num() > 0)
+        {
+            TArray<TWeakObjectPtr<UNiagaraComponent>> WeakNiagaraComps;
+            for (UNiagaraComponent* Comp : NiagaraComps)
+            {
+                WeakNiagaraComps.Add(Comp);
+            }
+            CachedNiagaraComponents.Add(WeakAnimal, WeakNiagaraComps);
+        }
+
+        AnimalEffectStateCache.Add(WeakAnimal, true);
+    }
+}
+
+void UAnimalOptimizationManager::ToggleEffects(ABaseAnimal* Animal, bool bEnable)
+{
+    if (!Animal || !IsValid(Animal)) return;
+    TWeakObjectPtr<ABaseAnimal> WeakAnimal = Animal;
+    
+    bool* LastState = AnimalEffectStateCache.Find(WeakAnimal);
+    if (LastState && *LastState == bEnable) return;
+    AnimalEffectStateCache.Add(WeakAnimal, bEnable);
+    
+    if (TArray<TWeakObjectPtr<UParticleSystemComponent>>* ParticleComps = CachedParticleComponents.Find(WeakAnimal))
+    {
+        for (TWeakObjectPtr<UParticleSystemComponent>& WeakComp : *ParticleComps)
+        {
+            if (UParticleSystemComponent* ParticleComp = WeakComp.Get())
+            {
+                if (bEnable)
+                {
+                    ParticleComp->SetHiddenInGame(false);
+                }
+                else
+                {
+                    ParticleComp->SetHiddenInGame(true);
+                }
+            }
+        }
+    }
+    
+    if (TArray<TWeakObjectPtr<UNiagaraComponent>>* NiagaraComps = CachedNiagaraComponents.Find(WeakAnimal))
+    {
+        for (TWeakObjectPtr<UNiagaraComponent>& WeakComp : *NiagaraComps)
+        {
+            if (UNiagaraComponent* NiagaraComp = WeakComp.Get())
+            {
+                if (bEnable)
+                {
+                    NiagaraComp->SetHiddenInGame(false);
+                }
+                else
+                {
+                    NiagaraComp->SetHiddenInGame(true);
+                }
+            }
+        }
+    }
+}
+
 void UAnimalOptimizationManager::ApplyDistanceBasedOptimization(ABaseAnimal* Animal, const FVector& Location)
 {
-    if (!Animal) return;
+    if (!Animal || !IsValid(Animal)) return;
     
     int32 Distance = GetGridDistanceFromPlayer(Location);
     
-    int32* LastDistance = LastDistanceCache.Find(Animal);
+    TWeakObjectPtr<ABaseAnimal> WeakAnimal = Animal;
+    int32* LastDistance = LastDistanceCache.Find(WeakAnimal);
     if (!LastDistance || *LastDistance != Distance)
     {
-        LastDistanceCache.Add(Animal, Distance);
+        LastDistanceCache.Add(WeakAnimal, Distance);
         
         if (USkeletalMeshComponent* MeshComp = Animal->GetMesh())
         {
-            if (Distance >= 2)
+            if (AAnimalAIController* AIController = Cast<AAnimalAIController>(Animal->GetController()))
             {
-                MeshComp->SetComponentTickInterval(1.0 / 10.f);
-            }
-            else if (Distance >= 1)
-            {
-                MeshComp->SetComponentTickInterval(1.0 / 2.0f);
-            }
-            else
-            {
-                MeshComp->SetComponentTickInterval(0.0f);
+                if (Distance >= 2)
+                {
+                    MeshComp->SetComponentTickInterval(1.0f);
+                    ToggleEffects(Animal, false);
+                    AIController->SetAITimerInterval(1.0f);
+                }
+                else
+                {
+                    MeshComp->SetComponentTickInterval(0.0f);
+                    ToggleEffects(Animal, true);
+                    AIController->SetAITimerInterval(0.5f);
+                }
             }
         }
     }
