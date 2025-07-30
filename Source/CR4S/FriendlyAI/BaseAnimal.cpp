@@ -863,6 +863,52 @@ void ABaseAnimal::PerformRangedAttack()
 }
 #pragma endregion
 
+#pragma region Attack - Target Rotation
+void ABaseAnimal::StartRotationToTarget()
+{
+    if (!CurrentTarget) return;
+    
+    FVector Direction = (CurrentTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+    FRotator CurrentRotation = GetActorRotation();
+    FRotator DesiredTargetRotation = Direction.Rotation();
+    
+    float DeltaYaw = FMath::FindDeltaAngleDegrees(CurrentRotation.Yaw, DesiredTargetRotation.Yaw);
+    float ClampedYaw = FMath::Clamp(DeltaYaw, -90.0f, 90.0f);
+    
+    AttackTargetRotation = CurrentRotation;
+    AttackTargetRotation.Yaw += ClampedYaw;
+    
+    bIsRotatingToTarget = true;
+    GetWorldTimerManager().SetTimer(RotationTimerHandle, this, &ABaseAnimal::UpdateRotationToTarget, 0.02f, true);
+    GetWorldTimerManager().SetTimer(RotationDefenseTimerHandle, this, &ABaseAnimal::StopRotationToTarget, 1.0f, false);
+}
+
+void ABaseAnimal::StopRotationToTarget()
+{
+    bIsRotatingToTarget = false;
+    GetWorldTimerManager().ClearTimer(RotationTimerHandle);
+    GetWorldTimerManager().ClearTimer(RotationDefenseTimerHandle);
+}
+
+void ABaseAnimal::UpdateRotationToTarget()
+{
+    if (!bIsRotatingToTarget || !CurrentTarget)
+    {
+        StopRotationToTarget();
+        return;
+    }
+    
+    FRotator CurrentRotation = GetActorRotation();
+    FRotator NewRotation = FMath::RInterpConstantTo(CurrentRotation, AttackTargetRotation, 0.02f, 180.0f);
+    SetActorRotation(NewRotation);
+    
+    if (FMath::IsNearlyEqual(CurrentRotation.Yaw, AttackTargetRotation.Yaw, 1.0f))
+    {
+        StopRotationToTarget();
+    }
+}
+#pragma endregion
+
 #pragma region Pade Effect
 void ABaseAnimal::StartFade(bool bIsFadeIn)
 {    
@@ -1005,6 +1051,8 @@ void ABaseAnimal::OnReturnToPool()
     GetWorldTimerManager().ClearTimer(MeleeAttackTimerHandle);
     GetWorldTimerManager().ClearTimer(ChargeAttackTimerHandle);
     GetWorldTimerManager().ClearTimer(RangedAttackTimerHandle);
+    GetWorldTimerManager().ClearTimer(RotationTimerHandle);
+    GetWorldTimerManager().ClearTimer(RotationDefenseTimerHandle);
     
     if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
     {
@@ -1014,5 +1062,6 @@ void ABaseAnimal::OnReturnToPool()
     bIsMeleeOnCooldown = false;
     bIsChargeOnCooldown = false;
     bIsRangedOnCooldown = false;
+    bIsRotatingToTarget = false;
 }
 #pragma endregion

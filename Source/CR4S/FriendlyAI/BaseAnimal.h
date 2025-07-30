@@ -241,6 +241,29 @@ public:
 	
 #pragma endregion
 
+#pragma region Attack - Target Rotation
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartRotationToTarget();
+	
+	UFUNCTION(BlueprintCallable)
+	void StopRotationToTarget();
+	
+	bool IsRotatingToTarget() const { return bIsRotatingToTarget; }
+	
+	void UpdateRotationToTarget();
+
+private:
+	UPROPERTY()
+	bool bIsRotatingToTarget = false;
+
+	UPROPERTY()
+	FRotator AttackTargetRotation;
+
+	FTimerHandle RotationTimerHandle;
+	FTimerHandle RotationDefenseTimerHandle;
+#pragma endregion
+
 #pragma region Pade Out Effect
 
 public:

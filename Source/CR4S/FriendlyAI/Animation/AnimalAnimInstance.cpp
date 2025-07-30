@@ -89,6 +89,21 @@ void UAnimalAnimInstance::AnimNotify_AnimalRanged()
 	}
 }
 
+void UAnimalAnimInstance::AnimNotify_ToggleRotationToTarget()
+{
+	if (OwnerAnimal)
+	{
+		if (OwnerAnimal->IsRotatingToTarget())
+		{
+			OwnerAnimal->StopRotationToTarget();
+		}
+		else
+		{
+			OwnerAnimal->StartRotationToTarget();
+		}
+	}
+}
+
 bool UAnimalAnimInstance::PlayRandomIdleMontage()
 {
 	if (Montage_IsPlaying(nullptr))

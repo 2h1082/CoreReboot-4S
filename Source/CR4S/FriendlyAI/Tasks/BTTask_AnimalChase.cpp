@@ -78,14 +78,15 @@ EBTNodeResult::Type UBTTask_AnimalChase::ExecuteTask(UBehaviorTreeComponent& Own
 	}
 	MoveReq.SetAcceptanceRadius(DesiredRadius);
 
-	if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
-	{
-		if (GroundAnimal->AIJumpComponent)
-		{
-			GroundAnimal->AIJumpComponent->ActivateJumpComponent();
-		}
-	}
+	// if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+	// {
+	// 	if (GroundAnimal->AIJumpComponent)
+	// 	{
+	// 		GroundAnimal->AIJumpComponent->ActivateJumpComponent();
+	// 	}
+	// }
 
+	Controller->MoveToActor(TargetToChase, DesiredRadius);
 	return EBTNodeResult::InProgress;
 }
 
@@ -147,17 +148,24 @@ void UBTTask_AnimalChase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		Animal->GetActorLocation(),
 		TargetToChase->GetActorLocation());
 
+	// if (DistanceToTarget > DesiredRadius)
+	// {
+	// 	if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+	// 	{
+	// 		if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->GetIsComponentActive())
+	// 		{
+	// 			GroundAnimal->AIJumpComponent->ActivateJumpComponent(DesiredRadius);
+	// 		}
+	// 	}
+	// }
+
 	if (DistanceToTarget > DesiredRadius)
 	{
-		if (AAnimalGround* GroundAnimal = Cast<AAnimalGround>(Animal))
+		if (AAIController* AIController = OwnerComp.GetAIOwner())
 		{
-			if (GroundAnimal->AIJumpComponent && !GroundAnimal->AIJumpComponent->GetIsComponentActive())
-			{
-				GroundAnimal->AIJumpComponent->ActivateJumpComponent(DesiredRadius);
-			}
+			AIController->MoveToActor(TargetToChase, 1.f);
 		}
 	}
-
 	
 	float Distance = FVector::Dist(
 	Animal->GetActorLocation(),

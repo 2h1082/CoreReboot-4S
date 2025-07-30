@@ -32,6 +32,9 @@ public:
 	UFUNCTION()
 	void AnimNotify_AnimalRanged();
 
+	UFUNCTION()
+	void AnimNotify_ToggleRotationToTarget();
+
 	void SetAnimationTickInterval(float NewAnimationTickInterval) {AnimationTickInterval = NewAnimationTickInterval;}
 	
 protected:
