@@ -37,6 +37,22 @@ public:
 
 #pragma endregion
 
+#pragma region Animal Commands
+public:
+	UFUNCTION(Exec)
+	void KillAllAnimals() const;
+
+	UFUNCTION(Exec)
+	void StunAllAnimals(const float StunDuration) const;
+
+	UFUNCTION(Exec)
+	void SpawnAnimal(const FString& AnimalName, int32 Count = 1) const;
+
+	UFUNCTION(Exec)
+	void SpawnAnimalMonster(const FString& AnimalName, int32 Count = 1) const;
+	
+#pragma endregion
+
 #pragma region Save
 public:
 	UFUNCTION(Exec)
@@ -63,7 +79,8 @@ protected:
 	TObjectPtr<class USaveGameHelper> SaveGameHelper;
 	UPROPERTY()
 	TObjectPtr<class UCharacterCheatHelper> CharacterCheatHelper;
-
+	UPROPERTY()
+	TObjectPtr<class UAnimalCheatHelper> AnimalHelper;
 	virtual void InitCheatManager() override;
 
 #pragma endregion

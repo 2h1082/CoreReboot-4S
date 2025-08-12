@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "DrawDebugHelpers.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
 
 ASpawnZoneVolume::ASpawnZoneVolume()
 {
@@ -82,7 +83,34 @@ AActor* ASpawnZoneVolume::SpawnActorsAndTrack(TSubclassOf<AActor> SpawnClass, co
 {
     UWorld* World = GetWorld();
     if (!World || !SpawnClass) return nullptr;
-
+    
+    for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
+    {
+        AActor* Actor = *ActorItr;
+        if (Actor->IsA(SpawnClass) && Actor->IsHidden())
+        {
+            if (UObjectPoolComponent* PoolComp = Actor->FindComponentByClass<UObjectPoolComponent>())
+            {
+                Actor->SetActorLocation(Location);
+                PoolComp->OnSpawnFromPool();
+            
+                if (Actor->GetClass()->ImplementsInterface(USpawnable::StaticClass()))
+                {
+                    ISpawnable* Spawnable = Cast<ISpawnable>(Actor);
+                    if (Spawnable)
+                    {
+                        if (FOnSpawnableDestroyed* Delegate = Spawnable->GetOnSpawnableDestroyedDelegate())
+                        {
+                            Delegate->AddUObject(this, &ASpawnZoneVolume::HandleActorDeath);
+                        }
+                    }
+                }
+            
+                return Actor;
+            }
+        }
+    }
+    
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
     
@@ -241,7 +269,14 @@ void ASpawnZoneVolume::DespawnActorsInZone()
     {
         if (AActor* Actor = SpawnedActors[i].Get())
         {
-            Actor->Destroy();
+            if (UObjectPoolComponent* PoolComp = Actor->FindComponentByClass<UObjectPoolComponent>())
+            {
+                PoolComp->ReturnToPoolAfter(0.0f);
+            }
+            else
+            {
+                Actor->Destroy();
+            }
         }
     }
     SpawnedActors.Empty();

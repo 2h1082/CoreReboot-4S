@@ -31,6 +31,11 @@ public:
 
 	UFUNCTION()
 	void AnimNotify_AnimalRanged();
+
+	UFUNCTION()
+	void AnimNotify_ToggleRotationToTarget();
+
+	void SetAnimationTickInterval(float NewAnimationTickInterval) {AnimationTickInterval = NewAnimationTickInterval;}
 	
 protected:
 	UPROPERTY()
@@ -53,7 +58,11 @@ protected:
 
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	uint8 bIsFalling : 1;
-
+	
+private:
+	float AnimationTickInterval = 0.0f;
+	float LastUpdateTime = 0.0f;
+	
 #pragma region Idle RandomAnim
 public:
 	UFUNCTION(BlueprintCallable, Category="Idle")

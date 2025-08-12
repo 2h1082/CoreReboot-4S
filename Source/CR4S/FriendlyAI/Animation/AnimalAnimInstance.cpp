@@ -25,7 +25,15 @@ void UAnimalAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
+	LastUpdateTime += DeltaSeconds;
+	if (AnimationTickInterval > 0.0f && LastUpdateTime < AnimationTickInterval)
+	{
+		return;
+	}
+	LastUpdateTime = 0.0f;
+    
 	APawn* PawnOwner = TryGetPawnOwner();
+	
 	if (!PawnOwner)
 	{
 		GroundSpeed = 0.f;
@@ -78,6 +86,21 @@ void UAnimalAnimInstance::AnimNotify_AnimalRanged()
 	if (OwnerAnimal)
 	{
 		OwnerAnimal->PerformRangedAttack();
+	}
+}
+
+void UAnimalAnimInstance::AnimNotify_ToggleRotationToTarget()
+{
+	if (OwnerAnimal)
+	{
+		if (OwnerAnimal->IsRotatingToTarget())
+		{
+			OwnerAnimal->StopRotationToTarget();
+		}
+		else
+		{
+			OwnerAnimal->StartRotationToTarget();
+		}
 	}
 }
 
