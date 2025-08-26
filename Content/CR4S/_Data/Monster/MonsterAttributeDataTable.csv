@@ -1,7 +1,0 @@
----,MonsterID,MaxHP,AttackPower,AttackRange,AttackSpeed,MoveSpeed,MaxStun,StunningTime,StunDamageMultiplier,StunChargeStartDelay,StunRecoveryMin,StunRecoveryMax,StunRecoveryRampUpTime,SightRadius,CombatRadius,LoseSightRadius,PeripheralVisionAngleDegrees,HearingRange,SkillDataTable
-KamishForestBoss,KamishForestBoss,250000,10,15,10,1200,13000,3,1.25,3,25,100,3,3000,2500,5000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/KamishSkillDataTable.KamishSkillDataTable'
-HiemsFrostBoss,HiemsFrostBoss,125000,20,15,10,700,10000,3,1.6,4.5,25,100,3,3000,2500,3000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/HiemsSkillDataTable.HiemsSkillDataTable'
-LavaBruteRockBoss,LavaBruteRockBoss,270000,30,15,10,1000,14000,3,1.35,4,25,120,3,3000,2500,5000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/LavaBruteSkillDataTable.LavaBruteSkillDataTable'
-CeresRainyBoss,CeresRainyBoss,125000,20,15,10,700,10000,3,1.6,4.5,25,100,3,3000,2500,3000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/CeresSkillDataTable.CeresSkillDataTable'
-VitaDryBoss,VitaDryBoss,125000,20,15,10,700,10000,3,1.6,4.5,25,100,3,3000,2500,3000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/VitaSkillDataTable.VitaSkillDataTable'
-AlgorVexSnowBoss,AlgorVexSnowBoss,270000,10,15,10,1500,16000,3,1.4,3,25,140,3,3000,2500,5000,180,2500,/Script/Engine.DataTable'/Game/CR4S/_Data/Monster/AlgorVexSkillDataTable.AlgorVexSkillDataTable'

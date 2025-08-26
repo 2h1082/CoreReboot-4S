@@ -1,6 +1,0 @@
----,SkillName,AttackType,SkillMontage,Damage,Cooldown,Range,StunGauge,bAllowMultipleHits,bUseWeaponCollision,bUseBodyCollision,BodyDamage,BodyStunt
-MudAmbust,MudAmbust,Melee,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_MudAmbust.AM_MudAmbust',3500,3,400,600,FALSE,FALSE,FALSE,0,0
-ThornField,ThornField,Melee,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThronField.AM_ThronField',2000,3,600,500,FALSE,FALSE,FALSE,0,0
-ThunderRoad,ThunderRoad,Melee,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_ThunderRoad.AM_ThunderRoad',1000,3,400,300,FALSE,FALSE,FALSE,0,0
-AcidFairy,AcidFairy,Ranged,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_AcidFairy.AM_AcidFairy',2000,3,0,600,FALSE,FALSE,FALSE,0,0
-Tsunami,Tsunami,Ranged,/Script/Engine.AnimMontage'/Game/CR4S/_Blueprint/MonsterAI/Animations/SeasonBoss/RainySeasonBoss/AM_Tsunami.AM_Tsunami',2000,3,1000,600,FALSE,FALSE,FALSE,0,0
