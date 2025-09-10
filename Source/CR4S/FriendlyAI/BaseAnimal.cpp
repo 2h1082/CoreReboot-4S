@@ -24,6 +24,7 @@
 #include "Component/ObjectPoolComponent.h"
 #include "Controller/AnimalMonsterAIController.h"
 #include "ETC/AnimalOptimizationManager.h"
+#include "Game/Interface/TutorialNotifiable.h"
 #include "Gimmick/Components/InteractableComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Utility/CombatStatics.h"
@@ -407,10 +408,12 @@ void ABaseAnimal::RecoverFromStun()
     }
 }
 
-void ABaseAnimal::Die()
+void ABaseAnimal::Die(AActor* Killer)
 {
     if (CurrentState != EAnimalState::Dead) return;
 
+    NotifyDeathObjective(Killer);
+    
     GetWorldTimerManager().ClearTimer(StunRecoverTimer);
     GetWorldTimerManager().ClearTimer(FadeTimerHandle);
     
@@ -531,7 +534,7 @@ float ABaseAnimal::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
     {
         CurrentHealth = 0.f;
         SetAnimalState(EAnimalState::Dead);
-        Die();
+        Die(EventInstigator);
     }
 
     ShowHitEffect(DamageCauser);
@@ -1068,5 +1071,32 @@ void ABaseAnimal::OnReturnToPool()
     bIsChargeOnCooldown = false;
     bIsRangedOnCooldown = false;
     bIsRotatingToTarget = false;
+}
+#pragma endregion
+
+#pragma region Tutorial
+void ABaseAnimal::NotifyDeathObjective(AActor* Killer)
+{
+    AActor* ActualKiller = nullptr;
+    if (AController* C = Cast<AController>(Killer))
+    {
+        ActualKiller = C->GetPawn();
+    }
+    else
+    {
+        ActualKiller = Killer;
+    }
+
+    if (!Cast<APlayerCharacter>(ActualKiller) && !Cast<AModularRobot>(ActualKiller))
+    {
+        return;
+    }
+
+    FString TagString = FString::Printf(TEXT("Tutorial.Animal.%s"), *RowName.ToString());
+    FGameplayTag TutorialTag = UGameplayTagsManager::Get().RequestGameplayTag(*TagString, false);
+    if (TutorialTag.IsValid())
+    {
+        ITutorialNotifiable::NotifyObjective(this, TutorialTag);
+    }
 }
 #pragma endregion
