@@ -14,7 +14,7 @@ void UAnimalCheatHelper::KillAllAnimals()
 			if (Animal && Animal->CurrentState != EAnimalState::Dead)
 			{
 				Animal->SetAnimalState(EAnimalState::Dead);
-				Animal->Die();
+				Animal->Die(nullptr);
 			}
 		}
 		CR4S_Log(LogAnimal, Warning, TEXT("Killed all animals"));

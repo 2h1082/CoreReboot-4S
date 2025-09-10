@@ -162,7 +162,7 @@ float AAnimalMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
     {
         CurrentHealth = 0.f;
         SetAnimalState(EAnimalState::Dead);
-        Die();
+        Die(EventInstigator);
     }
     return ActualDamage;
 }

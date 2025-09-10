@@ -135,7 +135,7 @@ public:
 	void ShowHitEffect(AActor* DamageCauser);
 	
 	UFUNCTION(BlueprintCallable)
-	void Die();
+	void Die(AActor* Killer);
 	
 	FTimerHandle StunRecoverTimer;
 	
@@ -341,5 +341,10 @@ public:
 
 	UPROPERTY()
 	FRotator InitialMeshRelativeRotation;
+#pragma endregion
+
+#pragma region Tutorial
+public:
+	void NotifyDeathObjective(AActor* Killer);
 #pragma endregion
 };
