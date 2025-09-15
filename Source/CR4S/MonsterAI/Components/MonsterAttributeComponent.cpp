@@ -45,9 +45,9 @@ void UMonsterAttributeComponent::InitializeMonsterAttribute(const FName MonsterI
 	CurrentHP = 0.0f;
 }
 
-void UMonsterAttributeComponent::ApplyDamage(float DamageAmount)
+void UMonsterAttributeComponent::ApplyDamage(float DamageAmount, AActor* DamageCauser)
 {
-	ChangeHP(-FMath::Abs(DamageAmount));
+	ChangeHP(-FMath::Abs(DamageAmount), DamageCauser);
 }
 
 void UMonsterAttributeComponent::ApplyHeal(float HealAmount)
@@ -55,7 +55,7 @@ void UMonsterAttributeComponent::ApplyHeal(float HealAmount)
 	ChangeHP(FMath::Abs(HealAmount));
 }
 
-void UMonsterAttributeComponent::ChangeHP(float Delta)
+void UMonsterAttributeComponent::ChangeHP(float Delta, AActor* DamageCauser)
 {
 	CurrentHP = FMath::Clamp(CurrentHP + Delta, 0.0f, CurrentAttribute.MaxHP);
 
@@ -70,7 +70,7 @@ void UMonsterAttributeComponent::ChangeHP(float Delta)
 	{
 		if (OnDeath.IsBound())
 		{
-			OnDeath.Broadcast();
+			OnDeath.Broadcast(DamageCauser);
 		}
 	}
 }

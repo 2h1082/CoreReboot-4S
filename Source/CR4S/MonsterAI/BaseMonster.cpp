@@ -5,6 +5,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Character/Characters/ModularRobot.h"
+#include "Character/Characters/PlayerCharacter.h"
 #include "Components/MonsterAttributeComponent.h"
 #include "Components/MonsterSkillComponent.h"
 #include "Components/MonsterStateComponent.h"
@@ -98,9 +99,9 @@ float ABaseMonster::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 		UE_LOG(LogTemp, Warning, TEXT("[ABaseMonster] TakeDamage - AttributeComponent is null or Monster is already dead!"));
 		return 0.0f;
 	}
-
+	
 	// Apply damage via AttributeComponent
-	AttributeComponent->ApplyDamage(ActualDamage);
+	AttributeComponent->ApplyDamage(ActualDamage, DamageCauser);
 	AddAccumulatedDamage(ActualDamage);
 
 	if (AModularRobot* Robot= Cast<AModularRobot>(DamageCauser))
@@ -134,7 +135,7 @@ bool ABaseMonster::IsDead() const
 	return AttributeComponent && AttributeComponent->IsDead();
 }
 
-void ABaseMonster::HandleDeath()
+void ABaseMonster::HandleDeath(AActor* Killer)
 {
 	if (bIsDead)
 	{
@@ -150,6 +151,9 @@ void ABaseMonster::HandleDeath()
 	bIsDead = true;
 	StateComponent->SetState(EMonsterState::Dead);
 	OnDied.Broadcast(this);
+
+	// Tutorial Notification
+	NotifyDeathObjective(Killer);
 
 	if (UBaseInventoryComponent* InventoryComp = GetPlayerInventory())
 	{
@@ -333,4 +337,54 @@ void ABaseMonster::PlayHitSound()
 			UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 		}
 	}
+}
+
+FGameplayTag ABaseMonster::GetTutorialTag() const
+{
+	if (MonsterID.IsNone())
+	{
+		return FGameplayTag();
+	}
+
+	FString TagString = FString::Printf(TEXT("Tutorial.Monster.%s"), *MonsterID.ToString());;
+	return FGameplayTag::RequestGameplayTag(FName(*TagString), false);
+}
+
+void ABaseMonster::NotifyDeathObjective(AActor* Killer)
+{
+	if (!bEnableTutorialNotify)
+	{
+		return;
+	}
+
+	FGameplayTag TutorialTag = GetTutorialTag();
+	if (!TutorialTag.IsValid())
+	{
+		return;
+	}
+
+	if (IsKilledByPlayer(Killer))
+	{
+		ITutorialNotifiable::NotifyObjective(this, TutorialTag);
+	}
+}
+
+bool ABaseMonster::IsKilledByPlayer(AActor* Killer) const
+{
+	if (!IsValid(Killer))
+	{
+		return false;
+	}
+
+	if (Cast<APlayerCharacter>(Killer))
+	{
+		return true;
+	}
+
+	if (AModularRobot* Robot = Cast<AModularRobot>(Killer))
+	{
+		return Robot->GetMountedCharacter() != nullptr;
+	}
+	
+	return false;
 }

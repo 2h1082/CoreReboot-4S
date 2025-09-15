@@ -52,5 +52,5 @@ private:
 	void OnMonsterSpawned(AActor* SpawnedMonster);
 
 	UFUNCTION()
-	void OnMonsterDestroyed();
+	void OnMonsterDestroyed(AActor* Killer);
 };
