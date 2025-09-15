@@ -76,9 +76,9 @@ float ASeasonBossMonster::TakeDamage(
    return Actual;
 }
 
-void ASeasonBossMonster::HandleDeath()
+void ASeasonBossMonster::HandleDeath(AActor* Killer)
 {
-   Super::HandleDeath();
+   Super::HandleDeath(Killer);
 
    if (SpawnedEnvVolume && SpawnedEnvVolume->IsValidLowLevel())
    {

@@ -5,6 +5,7 @@
 #include "Game/Interface/Spawnable.h"
 #include "Data/MonsterEnum.h"
 #include "Utility/StunnableInterface.h"
+#include "Game/Interface/TutorialNotifiable.h"
 #include "BaseMonster.generated.h"
 
 class UBaseInventoryComponent;
@@ -27,7 +28,7 @@ struct FDropData
 };
 
 UCLASS()
-class CR4S_API ABaseMonster : public ACharacter, public ISpawnable, public IStunnableInterface
+class CR4S_API ABaseMonster : public ACharacter, public ISpawnable, public IStunnableInterface, public ITutorialNotifiable
 {
 	GENERATED_BODY()
 
@@ -131,7 +132,7 @@ public:
 
 public:
 	UFUNCTION()
-	virtual void HandleDeath();
+	virtual void HandleDeath(AActor* Killer = nullptr);
 
 protected:
 	UFUNCTION()
@@ -187,6 +188,19 @@ protected:
 	float FlashDuration = 0.2f;
 
 	FTimerHandle FlashTimerHandle;
+	
+#pragma endregion
+
+#pragma region Tutorial Notification
+public:
+	virtual FGameplayTag GetTutorialTag() const override;
+
+protected:
+	virtual void NotifyDeathObjective(AActor* Killer);
+	static bool IsKilledByPlayer(AActor* Killer);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Tutorial")
+	bool bEnableTutorialNotify = false;
 	
 #pragma endregion
 	
