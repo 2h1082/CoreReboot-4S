@@ -53,7 +53,7 @@ void AKamishForestBoss::OnMonsterStateChanged(EMonsterState Previous, EMonsterSt
 	}
 }
 
-void AKamishForestBoss::HandleDeath(AActor* Killer)
+void AKamishForestBoss::HandleDeath()
 {
 	for (auto Weapon : WeaponActors)
 	{
@@ -67,7 +67,7 @@ void AKamishForestBoss::HandleDeath(AActor* Killer)
 	VisualWeaponActor = nullptr;
 
 	DestroyActiveClouds();
-	Super::HandleDeath(Killer);
+	Super::HandleDeath();
 }
 
 void AKamishForestBoss::AttachWeaponActor()

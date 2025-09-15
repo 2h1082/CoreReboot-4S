@@ -7,7 +7,7 @@
 
 class UDataTable;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMonsterDeath, AActor*, Killer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMonsterDeath);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMonsterHPChanged, float, CurrentHP, float, MaxHP);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -23,7 +23,7 @@ public:
 	void InitializeMonsterAttribute(const FName MonsterID);
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	void ApplyDamage(float DamageAmount, AActor* DamageCauser = nullptr);
+	void ApplyDamage(float DamageAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	void ApplyHeal(float HealAmount);
@@ -58,7 +58,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	void ChangeHP(float Delta, AActor* DamageCauser = nullptr);
+	void ChangeHP(float Delta);
 	FString MyHeader;
 	
 };

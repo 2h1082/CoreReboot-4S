@@ -139,7 +139,7 @@ void UMonsterStateComponent::AddStun(float StunAmount)
 	
 	CurrentStun = FMath::Clamp(CurrentStun + StunAmount, 0.f, MaxStun);
 	OnStunChangedDelegate.Broadcast();
-	// CR4S_Log(LogMonster, Log, TEXT("[Stun] Add Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
+	CR4S_Log(LogMonster, Log, TEXT("[Stun] Add Stun - CurrentStun=%.2f / MaxStun=%.2f"), CurrentStun, MaxStun);
 
 	bCanRecover = false;
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryDelayTimerHandle);

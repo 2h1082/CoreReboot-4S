@@ -22,7 +22,7 @@ public:
 	void UnbindFromMonster();
 
 	UFUNCTION()
-	void OnMonsterDeath(AActor* Killer);
+	void OnMonsterDeath();
 
 	UFUNCTION()
 	void OnMonsterChangedHPBar(float CurrentHP, float MaxHP);

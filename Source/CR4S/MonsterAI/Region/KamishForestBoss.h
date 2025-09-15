@@ -19,7 +19,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
-	virtual void HandleDeath(AActor* Killer) override;
+	virtual void HandleDeath() override;
 
 	void AttachWeaponActor();
 	void SpawnCloudEffect();

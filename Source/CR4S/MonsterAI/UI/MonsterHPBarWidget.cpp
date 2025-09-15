@@ -61,7 +61,7 @@ void UMonsterHPBarWidget::UpdateHPBar(float CurrentHP, float MaxHP)
 	HPText->SetText(FText::FromString(HPString));
 }
 
-void UMonsterHPBarWidget::OnMonsterDeath(AActor* Killer)
+void UMonsterHPBarWidget::OnMonsterDeath()
 {
 	SetVisibility(ESlateVisibility::Hidden);
 	UnbindFromMonster();

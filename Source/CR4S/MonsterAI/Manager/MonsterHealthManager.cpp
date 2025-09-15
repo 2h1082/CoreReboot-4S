@@ -192,7 +192,7 @@ void UMonsterHealthManager::OnMonsterSpawned(AActor* SpawnedMonster)
 	}
 }
 
-void UMonsterHealthManager::OnMonsterDestroyed(AActor* Killer)
+void UMonsterHealthManager::OnMonsterDestroyed()
 {
 	RefreshAllHealthBars();
 }
