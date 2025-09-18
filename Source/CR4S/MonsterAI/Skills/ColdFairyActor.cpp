@@ -3,12 +3,15 @@
 #include "NiagaraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "FriendlyAI/Component/ObjectPoolComponent.h"
+#include "Game/System/ProjectilePoolSubsystem.h"
 
 AColdFairyActor::AColdFairyActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	PoolComponent = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("PoolComponent"));
+	
 	CollisionComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Collision"));
 	CollisionComp->SetupAttachment(RootComp);
 	CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -37,18 +40,17 @@ void AColdFairyActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *MyHeader, Damage);
+	CR4S_Log(LogDa, Warning, TEXT("[%s] BeginPlay - Damage : %f"), *GetClass()->GetName(), Damage);
+	
+	if (PoolComponent)
+	{
+		PoolComponent->OnReturnToPoolDelegate.AddDynamic(this, &AColdFairyActor::ResetProjectile);
+	}
 
 	if (IsValid(CollisionComp) && CollisionComp->IsRegistered())
 	{
 		if (APawn* InstPawn = GetInstigator<APawn>())
 			CollisionComp->IgnoreActorWhenMoving(InstPawn, true);
-	}
-
-	if (AActor* OwnerActor = GetOwner())
-	{
-		auto& ArrayRef = ActiveFairiesMap.FindOrAdd(OwnerActor);
-		ArrayRef.Add(this);
 	}
 
 	if (IsValid(LaunchSkillSound))
@@ -111,47 +113,21 @@ void AColdFairyActor::HandleImmediateLaunch() const
 {
 	if (bHasLaunched) return;
 	
-	AActor* OwnerActor = GetOwner();
-	if (!OwnerActor) return;
-
-	const auto* ArrayPtr = ActiveFairiesMap.Find(OwnerActor);
-	if (!ArrayPtr || ArrayPtr->Num() < TotalCount)
+	if (LaunchDelay <= KINDA_SMALL_NUMBER)
 	{
-		return;
-	}
-
-	TArray<TWeakObjectPtr<AColdFairyActor>> SortedFairies = *ArrayPtr;
-	SortedFairies.Sort([](auto& A, auto& B){
-		return A.IsValid() && B.IsValid() && A->SpawnOrder < B->SpawnOrder;
-	});
-
-	float DelayTime = SortedFairies.Last()->LaunchDelay;
-	if (DelayTime <= KINDA_SMALL_NUMBER)
-	{
-		for (auto& WeakFairy : SortedFairies)
-		{
-			if (WeakFairy.IsValid())
-				WeakFairy->Launch();
-		}
+		const_cast<AColdFairyActor*>(this)->Launch();
 	}
 	else
 	{
-		FTimerDelegate LaunchAllDelegate;
-		LaunchAllDelegate.BindLambda([SortedFairies]()
-		{
-			for (auto& WeakFairy : SortedFairies)
-			{
-				if (WeakFairy.IsValid())
-					WeakFairy->Launch();
-			}
-		});
-
+		FTimerDelegate LaunchDelegate;
+		LaunchDelegate.BindUObject(const_cast<AColdFairyActor*>(this), &AColdFairyActor::Launch);
+		
 		GetWorld()->GetTimerManager().SetTimer(
-				SortedFairies.Last()->LaunchTimerHandle,
-				LaunchAllDelegate,
-				DelayTime,
-				false
-			);
+			const_cast<AColdFairyActor*>(this)->LaunchTimerHandle,
+			LaunchDelegate,
+			LaunchDelay,
+			false
+		);
 	}
 }
 
@@ -163,6 +139,16 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 	ProjectileMovementComp->Deactivate();
 	ProjectileMovementComp->bIsHomingProjectile = false;
 	ProjectileMovementComp->Velocity = FVector::ZeroVector;
+	
+	if (StaticMesh)
+	{
+		StaticMesh->SetVisibility(false);
+	}
+
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetVisibility(false);
+	}
 	
 	if (IsValid(HitComp) && HitComp != CollisionComp)
 	{
@@ -179,9 +165,19 @@ void AColdFairyActor::StopAndStick(const FHitResult& HitResult, AActor* HitActor
 		CollisionComp->SetGenerateOverlapEvents(false);
 	}
 	
-	FTimerDelegate DestroyDelegate;
-	DestroyDelegate.BindLambda([this]() { Destroy(); });
-	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, DestroyDelegate, LifeTime, false);
+	FTimerDelegate ReturnDelegate;
+	ReturnDelegate.BindLambda([this]() 
+	{ 
+		if (UWorld* World = GetWorld())
+		{
+			if (UProjectilePoolSubsystem* Pool = World->GetSubsystem<UProjectilePoolSubsystem>())
+			{
+				Pool->ReturnToPool(this);
+			}
+		}
+	});
+	
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, ReturnDelegate, LifeTime, false);
 }
 
 void AColdFairyActor::Launch()
@@ -215,7 +211,7 @@ void AColdFairyActor::Launch()
 	{
 		ProjectileMovementComp->ProjectileGravityScale = GravityScale;
 		ProjectileMovementComp->bIsHomingProjectile = bUseHoming;
-		ProjectileMovementComp->HomingAccelerationMagnitude = HomingAcceleration ;
+		ProjectileMovementComp->HomingAccelerationMagnitude = HomingAcceleration;
 		ProjectileMovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
 		ProjectileMovementComp->bRotationFollowsVelocity = true;
 	}
@@ -227,8 +223,66 @@ void AColdFairyActor::Launch()
 		ProjectileMovementComp->HomingTargetComponent = nullptr;
 		ProjectileMovementComp->bRotationFollowsVelocity = true; 
 	}
+	
 	ProjectileMovementComp->Velocity = Direction * Speed;
 	ProjectileMovementComp->UpdateComponentVelocity();
+}
+
+void AColdFairyActor::ResetProjectile()
+{
+	bHasLaunched = false;
+	SpawnOrder = 0;
+	TotalCount = 0;
+	TargetActor = nullptr;
+	LaunchDirection = FVector::ZeroVector;
+	
+	FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+		
+	if (TimerManager.IsTimerActive(LaunchTimerHandle))
+	{
+		TimerManager.ClearTimer(LaunchTimerHandle);
+	}
+		
+	if (TimerManager.IsTimerActive(DestroyTimerHandle))
+	{
+		TimerManager.ClearTimer(DestroyTimerHandle);
+	}
+	
+	if (StaticMesh)
+	{
+		StaticMesh->SetVisibility(true);
+	}
+
+	if (NiagaraComp)
+	{
+		NiagaraComp->SetVisibility(true);
+		NiagaraComp->Deactivate();
+	}
+	
+	if (CollisionComp)
+	{
+		CollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		CollisionComp->SetCollisionProfileName(TEXT("MonsterSkillActor"));
+		CollisionComp->SetGenerateOverlapEvents(true);
+	}
+	
+	if (ProjectileMovementComp)
+	{
+		ProjectileMovementComp->StopMovementImmediately();
+		ProjectileMovementComp->Deactivate();
+		ProjectileMovementComp->Velocity = FVector::ZeroVector;
+		ProjectileMovementComp->bIsHomingProjectile = false;
+		ProjectileMovementComp->HomingTargetComponent = nullptr;
+	}
+	
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	SetOwner(nullptr);
+	SetInstigator(nullptr);
+	
+	if (AlreadyDamaged.Num() > 0)
+	{
+		AlreadyDamaged.Empty();
+	}
 }
 
 void AColdFairyActor::OnOverlap(
@@ -247,34 +301,3 @@ void AColdFairyActor::OnOverlap(
 	
 	StopAndStick(SweepResult, OtherActor, OtherComp);
 }
-
-void AColdFairyActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	if (AActor* OwnerActor = GetOwner())
-	{
-		if (auto* ArrayPtr = ActiveFairiesMap.Find(OwnerActor))
-		{
-			ArrayPtr->Remove(this);
-			if (ArrayPtr->Num() == 0)
-			{
-				ActiveFairiesMap.Remove(OwnerActor);
-			}
-		}
-	}
-	
-	if (GetWorld())
-	{
-		if (GetWorld()->GetTimerManager().IsTimerActive(LaunchTimerHandle))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(LaunchTimerHandle);
-		}
-        
-		if (GetWorld()->GetTimerManager().IsTimerActive(DestroyTimerHandle))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(DestroyTimerHandle);
-		}
-	}
-	
-	Super::EndPlay(EndPlayReason);
-}
- 

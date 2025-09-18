@@ -7,6 +7,7 @@
 
 class USphereComponent;
 class UProjectileMovementComponent;
+class UObjectPoolComponent;
 
 UCLASS()
 class CR4S_API AColdFairyActor : public ABaseSkillActor
@@ -17,14 +18,20 @@ public:
 	AColdFairyActor();
 
 	UFUNCTION(BlueprintCallable, Category = "Boss|Skill")
-	void InitialLaunch(AActor* InTarget, int32 InIndex, int32 TotalCount);
+	void InitialLaunch(AActor* InTarget, int32 InIndex, int32 InTotalCount);
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void Tick(float DeltaTime) override;
 	UFUNCTION()
 	void OnProjectileStop(const FHitResult& ImpactResult);
+	
+	UFUNCTION()
+	void ResetProjectile();
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pool")
+	TObjectPtr<UObjectPoolComponent> PoolComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Boss|Skill")
 	UProjectileMovementComponent* ProjectileMovementComp;
@@ -79,9 +86,6 @@ private:
 	int32 SpawnOrder = 0;
 	int32 TotalCount = 0;
 
-	inline static TMap<TWeakObjectPtr<AActor>, TArray<TWeakObjectPtr<AColdFairyActor>>> ActiveFairiesMap;
 	FTimerHandle LaunchTimerHandle;
 	FTimerHandle DestroyTimerHandle;
-	
-	FString MyHeader = TEXT("ColdFairyActor");
 };
