@@ -85,7 +85,7 @@ void AEnvironmentManager::SetWeatherBySeason(ESeasonType Season, float Transitio
     }
     else
     {
-        UE_LOG(LogTemp, Error, TEXT("SetWeatherBySeason: Preset is not assigned for season %s"), *UEnum::GetValueAsString(Season));
+        UE_LOG(LogTemp, Warning, TEXT("SetWeatherBySeason: Preset is not assigned for season %s"), *UEnum::GetValueAsString(Season));
     }
 }
 

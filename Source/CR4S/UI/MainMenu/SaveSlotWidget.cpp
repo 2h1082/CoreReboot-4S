@@ -55,7 +55,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 
 	if (!SlotThumbnail)
 	{
-		UE_LOG(LogTemp, Error, TEXT("SlotThumbnail is nullptr!"));
+		UE_LOG(LogTemp, Warning, TEXT("SlotThumbnail is nullptr!"));
 		return;
 	}
 
@@ -64,7 +64,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 		UE_LOG(LogTemp, Warning, TEXT("Matched Season: 풍요기"));
 		if (!BountifulSeasonImage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("BountifulSeasonImage is nullptr!"));
+			UE_LOG(LogTemp, Warning, TEXT("BountifulSeasonImage is nullptr!"));
 		}
 		SlotThumbnail->SetBrushFromTexture(BountifulSeasonImage);
 	}
@@ -73,7 +73,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 		UE_LOG(LogTemp, Warning, TEXT("Matched Season: 혹한기"));
 		if (!FrostSeasonImage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("FrostSeasonImage is nullptr!"));
+			UE_LOG(LogTemp, Warning, TEXT("FrostSeasonImage is nullptr!"));
 		}
 		SlotThumbnail->SetBrushFromTexture(FrostSeasonImage);
 	}
@@ -82,7 +82,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 		UE_LOG(LogTemp, Warning, TEXT("Matched Season: 우기"));
 		if (!RainySeasonImage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("RainySeasonImage is nullptr!"));
+			UE_LOG(LogTemp, Warning, TEXT("RainySeasonImage is nullptr!"));
 		}
 		SlotThumbnail->SetBrushFromTexture(RainySeasonImage);
 	}
@@ -91,7 +91,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 		UE_LOG(LogTemp, Warning, TEXT("Matched Season: 건기"));
 		if (!DrySeasonImage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("DrySeasonImage is nullptr!"));
+			UE_LOG(LogTemp, Warning, TEXT("DrySeasonImage is nullptr!"));
 		}
 		SlotThumbnail->SetBrushFromTexture(DrySeasonImage);
 	}
@@ -100,7 +100,7 @@ void USaveSlotWidget::SetSlotThumbnail(const FString& Season)
 		UE_LOG(LogTemp, Warning, TEXT("Season did not match any known case. Using DefaultImage."));
 		if (!DefaultImage)
 		{
-			UE_LOG(LogTemp, Error, TEXT("DefaultImage is nullptr!"));
+			UE_LOG(LogTemp, Warning, TEXT("DefaultImage is nullptr!"));
 		}
 		SlotThumbnail->SetBrushFromTexture(DefaultImage);
 	}

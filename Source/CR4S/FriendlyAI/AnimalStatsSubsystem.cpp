@@ -10,7 +10,7 @@ void UAnimalStatsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	if (!StatsDataTable)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] Failed to load AnimalStatsTable via StaticLoadObject"), *LogHeader);
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Failed to load AnimalStatsTable via StaticLoadObject"), *LogHeader);
 	}
 
 	StatsCache.Empty();

@@ -29,7 +29,7 @@ void AAnimalMonsterAIController::OnPossess(APawn* InPawn)
     ControlledMonster = Cast<AAnimalMonster>(InPawn);
     if (!IsValid(ControlledMonster))
     {
-        UE_LOG(LogTemp, Error, TEXT("AnimalMonsterAIController: Failed to cast pawn to AAnimalMonster"));
+        UE_LOG(LogTemp, Warning, TEXT("AnimalMonsterAIController: Failed to cast pawn to AAnimalMonster"));
         return;
     }
     

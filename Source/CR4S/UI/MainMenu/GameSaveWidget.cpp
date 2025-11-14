@@ -279,7 +279,7 @@ void UGameSaveWidget::CreateEmptySlot(int32 SlotIndex)
 	UEmptySlotWidget* NewEmptySlot = CreateWidget<UEmptySlotWidget>(GetWorld(), EmptySlotWidgetClass);
 	if (!NewEmptySlot)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[SaveSlot] Failed to create new EmptySlotWidget at index %d"), SlotIndex);
+		UE_LOG(LogTemp, Warning, TEXT("[SaveSlot] Failed to create new EmptySlotWidget at index %d"), SlotIndex);
 		return;
 	}
 
