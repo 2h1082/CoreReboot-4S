@@ -21,7 +21,7 @@ void UMonsterHealthManager::Initialize(FSubsystemCollectionBase& Collection)
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("[HealthManager] Failed to load Blueprint widget: %s"), *WidgetBlueprintPath.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("[HealthManager] Failed to load Blueprint widget: %s"), *WidgetBlueprintPath.ToString());
 			}
 		}
 		

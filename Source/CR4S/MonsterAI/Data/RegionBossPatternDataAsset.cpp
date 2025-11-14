@@ -6,7 +6,7 @@ void URegionBossPatternDataAsset::PostLoad()
 	Super::PostLoad();
 
 	UE_LOG(LogMonster, Warning, TEXT("[RegionBossPatternDataAsset] PostLoad called for %s"), *GetName());
-	
+
 	for (FRegionPatternData& Pattern : PatternList)
 	{
 		for (FPhaseSkillSequence& Sequence : Pattern.PhaseSequences)
@@ -24,7 +24,12 @@ void URegionBossPatternDataAsset::PostLoad()
 
 			if (Sequence.SkillIndices.Num() == 0)
 			{
-				UE_LOG(LogMonster, Error, TEXT("[RegionBossPatternDataAsset] SkillIndices is empty!"));
+				UE_LOG(LogMonster, Warning, TEXT("[RegionBossPatternDataAsset] SkillIndices is empty for PatternID %d, Phase %d, BossType %s in asset %s. SkillTags count: %d"),
+					Pattern.PatternID,
+					static_cast<uint8>(Sequence.Phase),
+					*Pattern.BossTypeTag.ToString(),
+					*GetName(),
+					Sequence.SkillTags.Num());
 			}
 		}
 	}

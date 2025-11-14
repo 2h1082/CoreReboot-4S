@@ -423,7 +423,7 @@ bool ASpawnZoneVolume::TryGetGroundSpawnLocation(const FVector2D& Point2D, FVect
     UWorld* World = GetWorld();
     if (!IsValid(World))
     {
-        UE_LOG(LogTemp, Error, TEXT("TryGetGroundSpawnLocation: World is nullptr! Zone: %s"), *GetName());
+        UE_LOG(LogTemp, Warning, TEXT("TryGetGroundSpawnLocation: World is nullptr! Zone: %s"), *GetName());
         return false;
     }
 

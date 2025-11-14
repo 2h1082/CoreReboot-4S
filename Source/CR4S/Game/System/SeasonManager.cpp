@@ -46,7 +46,7 @@ void USeasonManager::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("SeasonManager: Failed to load SeasonWaveDataAsset from path: %s"), *AssetPath);
+		UE_LOG(LogTemp, Warning, TEXT("SeasonManager: Failed to load SeasonWaveDataAsset from path: %s"), *AssetPath);
 	}
 }
 
