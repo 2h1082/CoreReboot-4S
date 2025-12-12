@@ -21,6 +21,9 @@ public:
 #pragma region Direct Key Binding Handle Function
 	UFUNCTION(BlueprintCallable)
 	void OnPauseRequested();
+
+	UFUNCTION(BlueprintCallable)
+	void OnHUDVisibilityChanged();
 #pragma endregion
 	
 protected:
@@ -35,6 +38,8 @@ protected:
 	TObjectPtr<UInputAction> PauseAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> WorldMapAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> HUDVisibilityAction;
 #pragma endregion
 
 #pragma region Settings

@@ -36,6 +36,7 @@ void ACharacterController::SetupInputComponent()
 		if (IsValid(EnhancedInput))
 		{
 			EnhancedInput->BindAction(PauseAction, ETriggerEvent::Started, this, &ThisClass::OnPauseRequested);
+			EnhancedInput->BindAction(HUDVisibilityAction, ETriggerEvent::Started, this, &ThisClass::OnHUDVisibilityChanged);
 		}
 	}
 }
@@ -49,5 +50,14 @@ void ACharacterController::OnPauseRequested()
 	{
 		UE_LOG(LogTemp, Log, TEXT("Successfully cast to ASurvivalHUD. Toggling pause menu."));
 		InGameHUD->HandlePauseToggle();
+	}
+}
+
+void ACharacterController::OnHUDVisibilityChanged()
+{
+	ASurvivalHUD* InGameHUD = Cast<ASurvivalHUD>(GetHUD());
+	if (InGameHUD)
+	{
+		InGameHUD->ToggleInGameHUD();
 	}
 }

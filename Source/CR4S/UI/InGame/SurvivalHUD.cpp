@@ -105,6 +105,23 @@ void ASurvivalHUD::HandleGuideToggle()
 	}
 }
 
+void ASurvivalHUD::ToggleInGameHUD()
+{
+	if (!InGameWidget || !InventoryContainerWidget) return;
+	
+	const bool bIsVisible = InGameWidget->GetVisibility() == ESlateVisibility::HitTestInvisible;
+	if (bIsVisible)
+	{
+		InGameWidget->SetVisibility(ESlateVisibility::Hidden);
+		InventoryContainerWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		InGameWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		InventoryContainerWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+}
+
 void ASurvivalHUD::ToggleWidget(UUserWidget* Widget)
 {
 	if (!Widget)

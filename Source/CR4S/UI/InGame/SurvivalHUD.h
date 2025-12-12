@@ -92,6 +92,9 @@ protected:
 
 #pragma region Utility Functions
 public:
+	// Toggle the visibility of InGameWidget(HUD) between visible and hidden
+	void ToggleInGameHUD();
+	
 	// Toggles the visibility of any given widget between Visible and Collapsed.
 	void ToggleWidget(UUserWidget* Widget);
 
