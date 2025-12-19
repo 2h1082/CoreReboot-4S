@@ -5,8 +5,8 @@
 #include "AnimalMonster.generated.h"
 
 class AAnimalMonsterAIController;
-class UAIJumpComponent;
-class UAnimalIKComponent;
+//class UAIJumpComponent;
+//class UAnimalIKComponent;
 
 UCLASS()
 class CR4S_API AAnimalMonster : public ABaseAnimal
@@ -135,10 +135,10 @@ private:
 #pragma endregion
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI Jump")
-	UAIJumpComponent* AIJumpComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component", meta = (AllowPrivateAccess = "true"))
-	class UAnimalIKComponent* AnimalIKComponent;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI Jump")
+	// UAIJumpComponent* AIJumpComponent;
+	//
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component", meta = (AllowPrivateAccess = "true"))
+	// class UAnimalIKComponent* AnimalIKComponent;
 
 };

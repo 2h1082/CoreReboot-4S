@@ -78,7 +78,7 @@ ABaseAnimal::ABaseAnimal()
 void ABaseAnimal::BeginPlay()
 {
     Super::BeginPlay();
-    StartFade(true);
+    //StartFade(true);
     
     if (InteractableComponent)
     {
@@ -1040,7 +1040,7 @@ void ABaseAnimal::OnSpawnFromPool()
     {
         SpawnDefaultController();
     }
-    StartFade(true);
+    //StartFade(true);
 }
 
 void ABaseAnimal::OnReturnToPool()

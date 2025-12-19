@@ -22,8 +22,8 @@ AAnimalMonster::AAnimalMonster()
     AIControllerClass = AAnimalMonsterAIController::StaticClass();
     AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-    AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
-    AnimalIKComponent = CreateDefaultSubobject<UAnimalIKComponent>(TEXT("AnimalIKComponent"));
+    //AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
+    // AnimalIKComponent = CreateDefaultSubobject<UAnimalIKComponent>(TEXT("AnimalIKComponent"));
 }
 
 void AAnimalMonster::BeginPlay()

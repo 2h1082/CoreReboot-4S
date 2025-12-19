@@ -11,7 +11,7 @@
 AAnimalGround::AAnimalGround()
 {
 	AIJumpComponent = CreateDefaultSubobject<UAIJumpComponent>(TEXT("AIJumpComponent"));
-	AnimalIKComponent = CreateDefaultSubobject<UAnimalIKComponent>(TEXT("AnimalIKComponent"));
+	//AnimalIKComponent = CreateDefaultSubobject<UAnimalIKComponent>(TEXT("AnimalIKComponent"));
 }
 
 void AAnimalGround::BeginPlay()
