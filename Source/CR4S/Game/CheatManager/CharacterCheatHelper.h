@@ -16,4 +16,6 @@ class CR4S_API UCharacterCheatHelper : public UObject
 
 public:
 	void SetInvincibleMode(const bool bInvincibleMode) const;
+	
+	void TP(const float X, const float Y, const float Z) const;
 };

@@ -95,5 +95,7 @@ protected:
 
 #pragma endregion
 
-	
+public:
+	UFUNCTION(Exec)
+	void TP(const float X, const float Y, const float Z) const;
 };

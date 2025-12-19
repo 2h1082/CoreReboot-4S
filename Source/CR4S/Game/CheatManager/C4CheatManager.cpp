@@ -142,3 +142,11 @@ void UC4CheatManager::SpawnAnimalMonster(const FString& MonsterName, int32 Count
 		AnimalHelper->SpawnAnimalMonster(MonsterName, Count);
 	}
 }
+
+void UC4CheatManager::TP(const float X, const float Y, const float Z) const
+{
+	if (CharacterCheatHelper)
+	{
+		CharacterCheatHelper->TP(X, Y, Z);
+	}
+}

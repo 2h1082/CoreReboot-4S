@@ -21,3 +21,16 @@ void UCharacterCheatHelper::SetInvincibleMode(const bool bInvincibleMode) const
 		Status->SetInvincibleMode(bInvincibleMode);
 	}
 }
+
+void UCharacterCheatHelper::TP(const float X, const float Y, const float Z) const
+{
+	if (!GetWorld()) return;
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC) return;
+
+	APawn* Pawn = PC->GetPawn();
+	if (!Pawn) return;
+
+	Pawn->TeleportTo(FVector(X, Y, Z), Pawn->GetActorRotation(), false, false);
+}
