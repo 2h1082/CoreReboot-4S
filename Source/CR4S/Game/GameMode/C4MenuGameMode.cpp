@@ -81,7 +81,7 @@ void AC4MenuGameMode::OpenDemoLevel()
 
 void AC4MenuGameMode::LoadDemoMap()
 {
-    UGameplayStatics::OpenLevel(this, FName("UserTestLevel"));
+    UGameplayStatics::OpenLevel(this, FName("Showcase"));
 }
 
 void AC4MenuGameMode::LoadCinematicMap()
@@ -91,5 +91,5 @@ void AC4MenuGameMode::LoadCinematicMap()
 
 void AC4MenuGameMode::LoadMainMap()
 {
-    UGameplayStatics::OpenLevel(this, FName("MainWorldMap"));
+    UGameplayStatics::OpenLevel(this, FName("Showcase"));
 }
