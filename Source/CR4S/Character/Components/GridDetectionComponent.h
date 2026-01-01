@@ -22,8 +22,6 @@ protected:
 
 #pragma region GridDetection
 public:
-    //GetCurrentDection
-
     UPROPERTY(EditAnywhere, Category = "Detection")
     int32 GridDetectionRange = 2;
 

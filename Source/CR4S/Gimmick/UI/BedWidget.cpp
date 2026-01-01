@@ -7,6 +7,7 @@
 #include "Game/GameInstance/C4GameInstance.h"
 #include "Game/SaveGame/SaveGameManager.h"
 #include "Game/System/EnvironmentManager.h"
+#include "Game/System/TutorialManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/InGame/SurvivalHUD.h"
 
@@ -99,6 +100,18 @@ void UBedWidget::SaveGame()
 	
 	const bool bSuccess = SaveGameManager->SaveAll(GameInstance->CurrentSlotName);
 
+	// Notify Tutorial Manager
+	UTutorialManager* TutorialManager = GetWorld()->GetSubsystem<UTutorialManager>();
+	if (TutorialManager && bSuccess)
+	{
+		const FGameplayTag SaveTag = FGameplayTag::RequestGameplayTag("Tutorial.Action.Save");
+
+		if (TutorialManager->IsTutorialActive(SaveTag))
+		{
+			TutorialManager->UpdateObjectiveProgress(SaveTag);
+		}
+	}
+
 	SurvivalHUD->ShowMessage(bSuccess ? SaveSuccessText : SaveFailedText, MessageDuration);
 }
 
@@ -138,6 +151,17 @@ void UBedWidget::HandleAnimationFinished()
 		}
 
 		PlayAwakingAnimation();
+
+		// Notify Tutorial Manager
+		if (UTutorialManager* TutorialManager = GetWorld()->GetSubsystem<UTutorialManager>())
+		{
+			const FGameplayTag SleepTag = FGameplayTag::RequestGameplayTag("Tutorial.Action.Sleep");
+
+			if (TutorialManager->IsTutorialActive(SleepTag))
+			{
+				TutorialManager->UpdateObjectiveProgress(SleepTag);
+			}
+		}
 	}
 	else
 	{

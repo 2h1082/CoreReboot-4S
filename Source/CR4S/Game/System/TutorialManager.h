@@ -14,7 +14,6 @@ struct FActiveTutorial
     UPROPERTY(BlueprintReadOnly)
     FTutorialData Data;
 
-    // FName ¡æ FGameplayTag ·Î º¯°æ
     UPROPERTY(BlueprintReadOnly)
     TMap<FGameplayTag, int32> Progress;
 
@@ -28,6 +27,8 @@ struct FActiveTutorial
         }
         return true;
     }
+
+	bool bTutorialEnded = false;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTutorialProgressUpdated, const FActiveTutorial&, CurrentTutorial);
@@ -50,7 +51,8 @@ protected:
 
 #pragma region Getters and Checkers
 public:
-    FORCEINLINE FActiveTutorial GetActiveTutorial() const { return CurrentTutorial; }
+    FORCEINLINE const FActiveTutorial GetActiveTutorial() const { return CurrentTutorial; }
+    FORCEINLINE FName GetCurrentTutorialRowName() const { return CurrentRowName; }
 
     UFUNCTION(BlueprintCallable, Category = "Tutorial")
     bool IsTutorialActive(const FGameplayTag& TutorialTag) const;
@@ -66,9 +68,17 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Tutorial")
     void UpdateObjectiveProgress(FGameplayTag TutorialTag);
 
+    UFUNCTION(BlueprintCallable, Category = "Tutorial")
+    void EndTutorial();
+
+    void RestoreFromSave(const FName& RowName, const TMap<FString, int32>& SavedProgress, bool bEnded);
+
 private:
     UPROPERTY()
     FActiveTutorial CurrentTutorial;
+
+    UPROPERTY()
+    FName CurrentRowName;
 
     UPROPERTY()
     UDataTable* TutorialQuestTable;

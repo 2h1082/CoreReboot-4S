@@ -1,5 +1,6 @@
 #include "UI/InGame/TutorialSummaryWidget.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
 
 void UTutorialSummaryWidget::SetDescription(const FString& InDescription)
 {
@@ -34,5 +35,13 @@ void UTutorialSummaryWidget::PlayCompleteAnimation()
 		PlayAnimation(CompleteObjAnim);
 
 		bIsComplete = true;
+	}
+}
+
+void UTutorialSummaryWidget::HideIcon()
+{
+	if (ObjectiveIcon)
+	{
+		ObjectiveIcon->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }

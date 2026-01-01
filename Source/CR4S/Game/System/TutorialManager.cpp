@@ -51,8 +51,10 @@ void UTutorialManager::StartTutorial(FName RowName)
     static const FString Context(TEXT("TutorialQuest"));
     if (FTutorialData* QuestRow = TutorialQuestTable->FindRow<FTutorialData>(RowName, Context))
     {
+        CurrentRowName = RowName;
         CurrentTutorial.Data = *QuestRow;
         CurrentTutorial.Progress.Empty();
+        CurrentTutorial.bTutorialEnded = false;
 
         for (const auto& Obj : QuestRow->Objectives)
         {
@@ -119,9 +121,59 @@ void UTutorialManager::UpdateObjectiveProgress(FGameplayTag TutorialTag)
                 }
                 else
                 {
-                    UE_LOG(LogTutorial, Log, TEXT("No next tutorial found. All tutorials completed."));
+					EndTutorial();
                 }
             }, 2.0f, false);
+    }
+}
+
+void UTutorialManager::EndTutorial()
+{
+    CurrentTutorial.Data = FTutorialData();
+    CurrentTutorial.Progress.Empty();
+	CurrentTutorial.bTutorialEnded = true;
+    CurrentRowName = NAME_None;
+
+    UE_LOG(LogTutorial, Log, TEXT("Tutorial Ended."));
+	OnTutorialProgressUpdated.Broadcast(CurrentTutorial);
+}
+
+void UTutorialManager::RestoreFromSave(const FName& RowName, const TMap<FString, int32>& SavedProgress, bool bEnded)
+{
+    if (!TutorialQuestTable)
+    {
+        UE_LOG(LogTutorial, Warning, TEXT("No TutorialQuestTable when restoring tutorial."));
+        return;
+    }
+
+    static const FString Context(TEXT("TutorialQuest"));
+    if (FTutorialData* QuestRow = TutorialQuestTable->FindRow<FTutorialData>(RowName, Context))
+    {
+        CurrentRowName = RowName;
+        CurrentTutorial.Data = *QuestRow;
+        CurrentTutorial.Progress.Empty();
+
+        for (const auto& Obj : CurrentTutorial.Data.Objectives)
+        {
+            int32 Count = 0;
+            const FString Key = Obj.TutorialTag.ToString();
+            if (const int32* Found = SavedProgress.Find(Key))
+            {
+                Count = *Found;
+                if (Count > Obj.TargetCount) Count = Obj.TargetCount;
+            }
+            CurrentTutorial.Progress.Add(Obj.TutorialTag, Count);
+        }
+
+        CurrentTutorial.bTutorialEnded = bEnded;
+
+        UE_LOG(LogTutorial, Log, TEXT("Tutorial restored: %s, Ended=%s"), *RowName.ToString(), bEnded ? TEXT("true") : TEXT("false"));
+
+        OnTutorialProgressUpdated.Broadcast(CurrentTutorial);
+    }
+    else
+    {
+        UE_LOG(LogTutorial, Warning, TEXT("RestoreFromSave: Tutorial row not found: %s"), *RowName.ToString());
     }
 }
 
