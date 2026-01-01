@@ -97,4 +97,13 @@ void UTutorialWidget::ClearTutorials()
 void UTutorialWidget::NativeDestruct()
 {
     Super::NativeDestruct();
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UTutorialManager* TM = World->GetSubsystem<UTutorialManager>())
+        {
+            TM->OnTutorialProgressUpdated.RemoveDynamic(this, &UTutorialWidget::UpdateTutorial);
+        }
+    }
+    Super::NativeDestruct();
 }

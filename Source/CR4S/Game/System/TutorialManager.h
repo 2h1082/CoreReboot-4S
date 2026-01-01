@@ -22,8 +22,9 @@ struct FActiveTutorial
     {
         for (const auto& Obj : Data.Objectives)
         {
-            if (!Progress.Contains(Obj.TutorialTag)) return false;
-            if (Progress[Obj.TutorialTag] < Obj.TargetCount) return false;
+            const int32* Count = Progress.Find(Obj.TutorialTag);
+            if (!Count) return false;
+            if (*Count < Obj.TargetCount) return false;
         }
         return true;
     }

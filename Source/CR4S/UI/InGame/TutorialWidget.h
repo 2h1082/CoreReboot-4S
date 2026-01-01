@@ -44,7 +44,7 @@ protected:
 	void ClearTutorials();
 
 private:
-	int32 CurrentObjectiveSetID;
+	int32 CurrentObjectiveSetID = INDEX_NONE;
 
 	TMap<FGameplayTag, UTutorialSummaryWidget*> ObjectiveWidgets;
 
