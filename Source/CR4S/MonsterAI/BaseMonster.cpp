@@ -161,12 +161,18 @@ void ABaseMonster::HandleDeath(AActor* Killer)
 	}
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
 		MoveComp->DisableMovement();
+		MoveComp->bOrientRotationToMovement = false;
+		MoveComp->bUseControllerDesiredRotation = false;
+	}
 
 	if (ABaseMonsterAIController* AIC = Cast<ABaseMonsterAIController>(GetController()))
 	{
 		AIC->StopMovement();
-		
+		AIC->ClearFocus(EAIFocusPriority::Gameplay);
+		AIC->SetFocus(nullptr);
+
 		if (UBehaviorTreeComponent* BTComp = AIC->FindComponentByClass<UBehaviorTreeComponent>())
 			BTComp->StopTree(EBTStopMode::Safe);
 

@@ -11,6 +11,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NavigationInvokerComponent.h"
+#include "AIController.h"
 #include "CR4S.h"
 
 ARegionBossMonster::ARegionBossMonster()
@@ -239,4 +240,57 @@ void ARegionBossMonster::HandlePhaseChanged(EBossPhase NewPhase)
 
 	UE_LOG(LogMonster, Log, TEXT("[%s] HandlePhaseChanged : Current phase changed to %s"), *MyHeader,
 		*UEnum::GetDisplayValueAsText(NewPhase).ToString());
+}
+
+void ARegionBossMonster::HandleDeath(AActor* Killer)
+{
+	// If in air, find ground and teleport BEFORE parent call
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		if (!MoveComp->IsMovingOnGround())
+		{
+			// Trace down to find ground
+			FHitResult GroundHit;
+			const FVector Start = GetActorLocation();
+			const FVector End = Start - FVector(0.f, 0.f, 10000.f); // Trace 100m down
+
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this);
+
+			if (GetWorld()->LineTraceSingleByChannel(GroundHit, Start, End, ECC_WorldStatic, Params))
+			{
+				// Teleport to ground
+				FVector GroundLocation = GroundHit.ImpactPoint;
+				GroundLocation.Z += GetCapsuleComponent()->GetScaledCapsuleHalfHeight(); // Offset by capsule height
+
+				SetActorLocation(GroundLocation, false, nullptr, ETeleportType::TeleportPhysics);
+
+				UE_LOG(LogMonster, Log, TEXT("[%s] Monster died in air - teleported to ground at Z=%.2f"),
+					*MyHeader, GroundLocation.Z);
+			}
+			else
+			{
+				UE_LOG(LogMonster, Warning, TEXT("[%s] Monster died in air but no ground found!"), *MyHeader);
+			}
+		}
+	}
+
+	// Call parent implementation (this disables collision)
+	Super::HandleDeath(Killer);
+
+	// Disable rotation towards player
+	if (AAIController* AIC = Cast<AAIController>(GetController()))
+	{
+		AIC->ClearFocus(EAIFocusPriority::Gameplay);
+		AIC->SetFocus(nullptr);
+
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->bOrientRotationToMovement = false;
+			MoveComp->bUseControllerDesiredRotation = false;
+		}
+	}
+
+	// Hide combat range visualizer
+	HideCombatRange();
 }
