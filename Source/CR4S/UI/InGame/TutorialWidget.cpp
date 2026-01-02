@@ -1,7 +1,8 @@
-#include "UI/InGame/TutorialWidget.h"
+﻿#include "UI/InGame/TutorialWidget.h"
 #include "UI/InGame/TutorialSummaryWidget.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
+#include "Animation/WidgetAnimation.h"
 
 void UTutorialWidget::NativeConstruct()
 {
@@ -18,6 +19,12 @@ void UTutorialWidget::NativeConstruct()
 void UTutorialWidget::UpdateTutorial(const FActiveTutorial& CurrentTutorial)
 {
     if (!TutorialContent) return;
+
+    if (CurrentTutorial.bTutorialEnded)
+    {
+        EndTutorial();
+        return;
+	}
 
     if (CurrentTutorial.Data.ObjectiveSetID == CurrentObjectiveSetID)
     {
@@ -47,10 +54,7 @@ void UTutorialWidget::UpdateTutorial(const FActiveTutorial& CurrentTutorial)
     ObjectiveWidgets.Empty();
     CurrentObjectiveSetID = CurrentTutorial.Data.ObjectiveSetID;
 
-    if (StepNumber)
-    {
-        StepNumber->SetText(FText::AsNumber(CurrentTutorial.Data.TutorialLevel));
-    }
+	SetStepNumber(CurrentTutorial.Data.TutorialLevel);
 
     for (const auto& Obj : CurrentTutorial.Data.Objectives)
     {
@@ -89,6 +93,88 @@ UTutorialSummaryWidget* UTutorialWidget::AddObjective(const FString& Description
     return TutorialSummaryWidget;
 }
 
+void UTutorialWidget::EndTutorial()
+{
+    if (!TutorialContent) return;
+
+    ClearTutorials();
+
+    ObjectiveWidgets.Empty();
+    CurrentObjectiveSetID = -1;
+
+	UTutorialSummaryWidget* EndWidget = CreateWidget<UTutorialSummaryWidget>(GetWorld(), TutorialSummaryWidgetClass);
+    if (EndWidget)
+    {
+        EndWidget->SetVisibility(ESlateVisibility::Hidden);
+        EndWidget->HideIcon();
+
+        EndWidget->SetDescription(
+            TEXT("모든 튜토리얼 클리어하신 것을 축하 드립니다.\n")
+            TEXT("앞으로 계절을 어지럽히는 보스를 처치하고\n")
+            TEXT("이 세상을 구해주세요!")
+        );
+
+        SetStepText(TEXT("완료"));
+		StepNumber->SetVisibility(ESlateVisibility::Collapsed);
+        EndWidget->SetCountText(TEXT(""));
+        TutorialContent->AddChildToVerticalBox(EndWidget);
+        EndWidget->PlayCreateAnimation();
+
+		// Play end animation after a delay
+        if (UWorld* World = GetWorld())
+        {
+            FTimerHandle TimerHandle;
+            World->GetTimerManager().SetTimer(
+                TimerHandle,
+                [this]() { PlayEndAnimationAndRemove(); },
+                TutorialEndDuration,
+                false
+            );
+        }
+
+	}
+}
+
+void UTutorialWidget::PlayEndAnimationAndRemove()
+{
+    if (TutorialEndAnim)
+    {
+        PlayAnimation(TutorialEndAnim);
+
+        const float AnimLength = TutorialEndAnim->GetEndTime();
+        if (UWorld* World = GetWorld())
+        {
+            FTimerHandle RemoveHandle;
+            World->GetTimerManager().SetTimer(
+                RemoveHandle,
+                [this]() { RemoveFromParent(); },
+                AnimLength,
+                false
+            );
+        }
+    }
+    else
+    {
+        RemoveFromParent();
+    }
+}
+
+void UTutorialWidget::SetStepNumber(int32 Step)
+{
+    if (StepNumber)
+    {
+        StepNumber->SetText(FText::AsNumber(Step));
+	}
+}
+
+void UTutorialWidget::SetStepText(const FString& Text)
+{
+    if (StepText)
+    {
+        StepText->SetText(FText::FromString(Text));
+	}
+}
+
 void UTutorialWidget::ClearTutorials()
 {
     TutorialContent->ClearChildren();
@@ -96,5 +182,14 @@ void UTutorialWidget::ClearTutorials()
 
 void UTutorialWidget::NativeDestruct()
 {
+    Super::NativeDestruct();
+
+    if (UWorld* World = GetWorld())
+    {
+        if (UTutorialManager* TM = World->GetSubsystem<UTutorialManager>())
+        {
+            TM->OnTutorialProgressUpdated.RemoveDynamic(this, &UTutorialWidget::UpdateTutorial);
+        }
+    }
     Super::NativeDestruct();
 }

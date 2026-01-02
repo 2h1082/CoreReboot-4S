@@ -22,6 +22,7 @@ class UPlayerCharacterStatusComponent;
 class UCharacterEnvironmentStatusWidget;
 class UTimeDisplayWidget;
 class UGuideWidget;
+class UTutorialWidget;
 
 UCLASS()
 class CR4S_API UDefaultInGameWidget : public UUserWidget
@@ -96,6 +97,9 @@ protected:
 	TObjectPtr<UWeaponInfoBlockWidget> WeaponInfoBlockWidget;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UGuideWidget> GuideWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UTutorialWidget> TutorialWidget;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UMonsterStunWidget> MonsterStunWidget;
 

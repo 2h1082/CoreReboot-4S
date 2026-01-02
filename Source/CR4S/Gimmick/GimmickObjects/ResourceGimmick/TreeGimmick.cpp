@@ -39,7 +39,7 @@ void ATreeGimmick::OnGimmickDestroy(AActor* DamageCauser)
 	if (!bIsTrunkDestroyed)
 	{
 		GetResources(DamageCauser);
-		ITutorialNotifiable::NotifyObjective(this, FGameplayTag::RequestGameplayTag(TEXT("Tutorial.Animal.Deer")));
+		ITutorialNotifiable::NotifyObjective(this, FGameplayTag::RequestGameplayTag(TEXT("Tutorial.Gimmick.Tree")));
 		HandleDestroyTrunk(DamageCauser);
 	}
 	// After The Trunk Is Destroyed

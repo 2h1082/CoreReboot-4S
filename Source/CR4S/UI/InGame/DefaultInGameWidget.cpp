@@ -16,6 +16,7 @@
 #include "UI/Common/ProgressBarWidget.h"
 #include "UI/InGame/TimeDisplayWidget.h"
 #include "UI/InGame/GuideWidget.h"
+#include "UI/InGame/TutorialWidget.h"
 
 void UDefaultInGameWidget::NativeConstruct()
 {

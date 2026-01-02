@@ -4,6 +4,7 @@
 #include "TutorialSummaryWidget.generated.h"
 
 class UTextBlock;
+class UImage;
 
 UCLASS()
 class CR4S_API UTutorialSummaryWidget : public UUserWidget
@@ -17,6 +18,9 @@ public:
 
 	void PlayCreateAnimation();
 	void PlayCompleteAnimation();
+
+	void HideIcon();
+
 #pragma endregion
 
 #pragma region Widget Bindings
@@ -26,6 +30,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Count;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* ObjectiveIcon;
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	UWidgetAnimation* CreateObjAnim;

@@ -41,7 +41,7 @@ struct FTutorialData : public FTableRowBase
     int32 TutorialLevel;   // Lv1
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 ObjectiveSetID;
+    int32 ObjectiveSetID; // integers starting form 1
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FText TutorialName;    // [Ã¤Áý]

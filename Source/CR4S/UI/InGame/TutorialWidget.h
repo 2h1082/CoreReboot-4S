@@ -2,7 +2,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Game/System/TutorialManager.h"
-#include "GameplayTagContainer.h"   // Ãß°¡
+#include "GameplayTagContainer.h"
 #include "TutorialWidget.generated.h"
 
 class UTutorialSummaryWidget;
@@ -30,7 +30,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* StepNumber;
 	UPROPERTY(meta = (BindWidget))
+	UTextBlock* StepText;
+
+	UPROPERTY(meta = (BindWidget))
 	UVerticalBox* TutorialContent;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* TutorialEndAnim;
 
 #pragma endregion
 
@@ -41,10 +47,18 @@ protected:
 
 	UTutorialSummaryWidget* AddObjective(const FString& Description, const FString& CountText);
 
+	void SetStepNumber(int32 Step);
+	void SetStepText(const FString& Text);
 	void ClearTutorials();
+	void EndTutorial();
+	void PlayEndAnimationAndRemove();
+
+	// Duration to show the tutorial end animation before clearing the widget
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	float TutorialEndDuration = 5.0f;
 
 private:
-	int32 CurrentObjectiveSetID;
+	int32 CurrentObjectiveSetID = INDEX_NONE;
 
 	TMap<FGameplayTag, UTutorialSummaryWidget*> ObjectiveWidgets;
 

@@ -2,6 +2,7 @@
 
 #include "HelperBotSaveGame.h"
 #include "GameFramework/SaveGame.h"
+#include "GameplayTagContainer.h"
 #include "CoreSaveGame.generated.h"
 
 
@@ -21,6 +22,21 @@ public:
 	FString SerializedData;
 };
 
+USTRUCT(BlueprintType)
+struct CR4S_API FSavedTutorialData
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FName TutorialRowName;
+
+	UPROPERTY()
+	TMap<FString, int32> Progress;
+
+	UPROPERTY()
+	bool bTutorialEnded = false;
+};
+
 UCLASS()
 class CR4S_API UCoreSaveGame : public USaveGame
 {
@@ -33,4 +49,7 @@ public:
 
 	UPROPERTY(SaveGame)
 	int32 NextUniqueID = 0;
+
+	UPROPERTY(SaveGame)
+	FSavedTutorialData SavedTutorial;
 };

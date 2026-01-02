@@ -2,6 +2,7 @@
 #include "Game/System/AudioManager.h"
 #include "Game/System/WorldTimeManager.h"
 #include "Game/System/SeasonManager.h"
+#include "Game/System/TutorialManager.h"
 #include "Gimmick/Manager/ItemGimmickSubsystem.h"
 #include "Inventory/Components/PlayerInventoryComponent.h"
 
@@ -223,6 +224,7 @@ bool USaveGameManager::SaveCore(const FString& SlotName)
 
     CoreSave->SavedActorsData.Empty();
 
+    // SavableActors Saves
     for (const TScriptInterface<ISavableActor>& SavableActor : SavableActors)
     {
         if (!SavableActor) continue;
@@ -237,6 +239,22 @@ bool USaveGameManager::SaveCore(const FString& SlotName)
         FSavedActorData ActorDataContainer;
         SavableActor->GatherSaveData(ActorDataContainer);
         CoreSave->SavedActorsData.Add(UniqueID, ActorDataContainer);
+    }
+
+	// Tutorial Save
+    if (UTutorialManager* TutorialMgr = GetWorld()->GetSubsystem<UTutorialManager>())
+    {
+        const FActiveTutorial Active = TutorialMgr->GetActiveTutorial();
+        CoreSave->SavedTutorial = FSavedTutorialData();
+
+        CoreSave->SavedTutorial.TutorialRowName = TutorialMgr->GetCurrentTutorialRowName();
+
+        for (const auto& Pair : Active.Progress)
+        {
+            const FString Key = Pair.Key.ToString();
+            CoreSave->SavedTutorial.Progress.Add(Key, Pair.Value);
+        }
+        CoreSave->SavedTutorial.bTutorialEnded = Active.bTutorialEnded;
     }
 
     const FString FullSlotName = SlotName + TEXT("_Core");
@@ -383,6 +401,7 @@ void USaveGameManager::ApplyCoreData()
 
     SavableActors.Empty();
 
+	// Apply SavableActors Saves
     for (auto& Pair : CoreSave->SavedActorsData)
     {
         const FName& ActorID=Pair.Key;
@@ -420,6 +439,21 @@ void USaveGameManager::ApplyCoreData()
             }
         }
     }  
+
+    if (UTutorialManager* TutorialMgr = GetWorld()->GetSubsystem<UTutorialManager>())
+    {
+        const FName SavedRow = CoreSave->SavedTutorial.TutorialRowName;
+        if (!SavedRow.IsNone())
+        {
+            TutorialMgr->RestoreFromSave(SavedRow, CoreSave->SavedTutorial.Progress, CoreSave->SavedTutorial.bTutorialEnded);
+            UE_LOG(LogSave, Log, TEXT("Applied saved tutorial: %s"), *SavedRow.ToString());
+        }
+        else
+        {
+            // 저장된 튜토리얼이 없으면 EndTutorial을 호출할 수도 있음
+            TutorialMgr->EndTutorial();
+        }
+    }
 }
 
 void USaveGameManager::ApplyWorldData()

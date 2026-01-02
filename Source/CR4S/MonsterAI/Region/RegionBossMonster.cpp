@@ -101,22 +101,25 @@ bool ARegionBossMonster::IsOutsideCombatRange(float Tolerance) const
 
 void ARegionBossMonster::ShowCombatRange()
 {
-	if (!RangeVisualizerClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] RangeVisualizerClass is not assigned!"), *MyHeader);
-		return;
-	}
-
-	if (!RangeVisualizer)
+	if (!RangeVisualizer && RangeVisualizerClass)
 	{
 		RangeVisualizer = GetWorld()->SpawnActor<ACombatRangeVisualizer>(RangeVisualizerClass);
-		if (!RangeVisualizer)
+		if (!RangeVisualizer) return;
+
+		FHitResult Hit;
+		FVector TraceStart = GetCombatStartLocation() + FVector(0, 0, 500);
+		FVector TraceEnd = GetCombatStartLocation() - FVector(0, 0, 1000);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FVector GroundLocation = GetCombatStartLocation();
+		if (GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, Params))
 		{
-			UE_LOG(LogTemp, Error, TEXT("[%s] Failed to spawn RangeVisualizer!"), *MyHeader);
-			return;
+			GroundLocation = Hit.ImpactPoint;
 		}
 
-		RangeVisualizer->InitializeVisualizer(GetCombatStartLocation(), CombatRange, CombatRangeVisualizerHeight);
+		RangeVisualizer->InitializeVisualizer(GroundLocation - FVector(0, 0, 10), CombatRange, CombatRangeVisualizerHeight);
 	}
 }
 
