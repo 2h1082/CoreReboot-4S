@@ -21,7 +21,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;	
+	virtual void OnMonsterStateChanged(EMonsterState Previous, EMonsterState Current) override;
+	virtual void HandleDeath(AActor* Killer = nullptr) override;
 
 	UFUNCTION()
 	void HandlePhaseChanged(EBossPhase NewPhase);
